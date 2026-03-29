@@ -2,7 +2,7 @@
 
 ## Goal
 
-Understand how basic geometric operations used in computer vision
+Understand how basic geometric operations used in computer vision  
 can be expressed using linear algebra and homogeneous coordinates.
 
 ---
@@ -16,9 +16,9 @@ In projective geometry:
 
 Their relationship is defined by:
 
-[
+
 a x + b y + c w = 0
-]
+
 
 This allows all geometric operations to be expressed using:
 
@@ -36,168 +36,85 @@ struct Vec3 {
 
 using Point = Vec3; // (x, y, w)
 using Line  = Vec3; // (a, b, c)
-```
+Core Operations
+Operation	Formula	Meaning
+Incidence	dot(l, p) = 0	Point lies on line
+Join	l = p1 × p2	Line through two points
+Meet	p = l1 × l2	Intersection of lines
+Transformations
+Euclidean / Affine
+Transform2D::translation(...)
+Transform2D::rotation(...)
+Transform2D::scale(...)
+Projective (Homography)
+x' = Hx
+l' = H^{-T} l
 
----
+Projective transformations preserve incidence relationships
+between points and lines.
 
-## Core Operations
+Key Property
+p ∈ l  →  H(p) ∈ H(l)
 
-| Operation | Formula         | Meaning                 |
-| --------- | --------------- | ----------------------- |
-| Incidence | `dot(l, p) = 0` | Point lies on line      |
-| Join      | `l = p1 × p2`   | Line through two points |
-| Meet      | `p = l1 × l2`   | Intersection of lines   |
+A point lying on a line remains on the corresponding transformed line.
 
----
+Visualization
+Join (line through two points)
 
-## Key Insight
+Meet (intersection of lines)
 
-All basic geometric operations reduce to:
+Parallel lines
 
-* dot product
-* cross product
+Parallel lines intersect at infinity (w ≈ 0) in projective space.
 
-This makes geometry:
+Euclidean vs Projective
 
-> a linear algebra problem
+Homography
 
----
+Tests
 
-## Visualization
+Unit tests cover:
 
-### Line from two points (join)
-
-Two points define a line via cross product.
-
-![join](images/join.png)
-
----
-
-### Intersection of lines (meet)
-
-The intersection is computed as:
-
-[
-p = l_1 \times l_2
-]
-
-![intersection](images/intersection.png)
-
----
-
-### Parallel lines → infinity
-
-Two parallel lines:
-
-```
-y = 100
-y = 200
-```
-
-* In Euclidean geometry → no intersection
-* In projective geometry → intersection exists
-
-[
-p = l_1 \times l_2 \quad \Rightarrow \quad w \approx 0
-]
-
-![parallel](images/parallel.png)
-
----
-
-### Euclidean vs Projective
-
-![comparison](images/euclidean_vs_projective.png)
-
-Parallel lines:
-
-* Euclidean space → do not intersect
-* Projective space → intersect at infinity
-
-This is a key idea behind many computer vision algorithms.
-
----
-
-## Tests
-
-Unit tests verify geometric properties:
-
-* incidence correctness
-* join/meet consistency
-* symmetry of cross product
-* behavior of parallel lines
-* normalization of homogeneous coordinates
+incidence correctness
+join/meet consistency
+behavior of parallel lines
+normalization of homogeneous coordinates
+transformation correctness
+incidence preservation under homography
 
 Example:
 
-```cpp
 EXPECT_TRUE(incidence(p, l));
 EXPECT_TRUE(isAtInfinity(p));
-```
+Project Structure
+include/
+  core/        → Vec3, Mat3
+  geometry/    → points, lines, operations
+  transform/   → affine transforms
+  projective/  → homography
 
----
+src/           → implementation
 
-## Why it matters
+tests/         → unit tests (GoogleTest)
 
-Projective geometry is the foundation of:
-
-* homography
-* camera models
-* vanishing points
-* multi-view geometry
-
-Understanding these primitives makes higher-level CV concepts much clearer.
-
----
-
-## Project Structure
-
-```
-src/
-  geometry.h / .cpp   → core math
-viz/
-  visualize.cpp       → image generation (OpenCV)
-tests/
-  test_geometry.cpp   → unit tests (GoogleTest)
-```
-
----
-
-## How to build
-
-```bash
+viz/           → visualization (OpenCV)
+Build
 mkdir build
 cd build
 cmake ..
 make
-```
-
-Run tests:
-
-```bash
+Run
 ./tests
-```
-
-Generate visualizations:
-
-```bash
 ./visualize
-```
+Applications
 
----
+This library demonstrates the foundations of:
 
-## Next Steps
-
-* Homography transformations
-* Camera projection model
-* Epipolar geometry
-
----
-
-## Summary
-
-This project shows that:
-
-> Geometry in computer vision is not about shapes —
-> it is about linear algebra and representation.
-
+homography
+camera projection models
+vanishing points
+multi-view geometry
+Roadmap
+homography estimation from point correspondences
+camera model (3D → 2D projection)
+epipolar geometry
