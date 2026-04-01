@@ -1,14 +1,14 @@
 #include <gtest/gtest.h>
-#include "../include/projective/homography.h"
-#include "../include/geometry/operations.h"
+#include <projective/homography.hpp>
+#include <geometry/operations.hpp>
 
 TEST(HomographyTest, IncidencePreserved) {
-    Point2D p{1,1,1};
-    Line2D l{1,-1,0};
+    geometry::Point2D p{1,1,1};
+    geometry::Line2D l{1,-1,0};
 
-    EXPECT_TRUE(incidence(p,l));
+    EXPECT_TRUE(geometry::incidence(p,l));
 
-    Homography H;
+    projective::Homography H;
 
     H.H = {{
         {1,0,1},
@@ -16,8 +16,8 @@ TEST(HomographyTest, IncidencePreserved) {
         {0,0,1}
     }};
 
-    Point2D p2 = H.transformPoint(p);
-    Line2D l2 = H.transformLine(l);
+    geometry::Point2D p2 = H.transformPoint(p);
+    geometry::Line2D l2 = H.transformLine(l);
 
-    EXPECT_TRUE(incidence(p2,l2));
+    EXPECT_TRUE(geometry::incidence(p2,l2));
 }

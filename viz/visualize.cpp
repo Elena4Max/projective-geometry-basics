@@ -1,11 +1,11 @@
 #include <opencv2/opencv.hpp>
-#include "../include/geometry/operations.h"
-#include "../include/projective/homography.h"
+#include <geometry/operations.hpp>
+#include <projective/homography.hpp>
 #include <iostream>
 
-constexpr double EPS = 1e-6;
+#include <core/constants.hpp>
 
-cv::Point2d toCartesian(const Point2D& p) {
+cv::Point2d toCartesian(const geometry::Point2D& p) {
     return {p.x / p.z, p.y / p.z};
 }
 
@@ -14,20 +14,20 @@ void drawText(cv::Mat& img, const std::string& text, int x, int y) {
         cv::FONT_HERSHEY_SIMPLEX, 0.6, {0,0,0}, 1);
 }
 
-void drawPoint(cv::Mat& img, const Point2D& p, cv::Scalar color, int offsetX = 0) {
-    if (isAtInfinity(p)) return;
+void drawPoint(cv::Mat& img, const geometry::Point2D& p, cv::Scalar color, int offsetX = 0) {
+    if (geometry::isAtInfinity(p)) return;
 
-    Point2D pn = normalize(p);
+    geometry::Point2D pn = geometry::normalize(p);
     cv::circle(img,
         {offsetX + (int)pn.x, (int)pn.y},
         5, color, -1);
 }
 
-void drawLine(cv::Mat& img, const Line2D& l, cv::Scalar color, int offsetX = 0) {
+void drawLine(cv::Mat& img, const geometry::Line2D& l, cv::Scalar color, int offsetX = 0) {
     int w = img.cols;
     int h = img.rows;
 
-    if (std::abs(l.y) > EPS) {
+    if (std::abs(l.y) > core::kEps) {
         double y1 = -(l.x * 0 + l.z) / l.y;
         double y2 = -(l.x * w + l.z) / l.y;
 
@@ -58,13 +58,13 @@ void testIntersection() {
 
     drawText(img, "Intersection", 20, 30);
 
-    Line2D l1{0, 1, -100};
-    Line2D l2{1, -1, 0};
+    geometry::Line2D l1{0, 1, -100};
+    geometry::Line2D l2{1, -1, 0};
 
     drawLine(img, l1, {255,0,0});
     drawLine(img, l2, {0,200,0});
 
-    Point2D p = meet(l1, l2);
+    geometry::Point2D p = geometry::meet(l1, l2);
     drawPoint(img, p, {0,0,255});
 
     save(img, "intersection.png");
@@ -76,8 +76,8 @@ void testParallel() {
     drawText(img, "Parallel lines", 20, 30);
     drawText(img, "Intersection at infinity", 20, 60);
 
-    Line2D l1{0, 1, -100};
-    Line2D l2{0, 1, -200};
+    geometry::Line2D l1{0, 1, -100};
+    geometry::Line2D l2{0, 1, -200};
 
     drawLine(img, l1, {255,0,0});
     drawLine(img, l2, {0,200,0});
@@ -90,10 +90,10 @@ void testJoin() {
 
     drawText(img, "Line from two points", 20, 30);
 
-    Point2D p1{100,100,1};
-    Point2D p2{400,300,1};
+    geometry::Point2D p1{100,100,1};
+    geometry::Point2D p2{400,300,1};
 
-    Line2D l = join(p1, p2);
+    geometry::Line2D l = geometry::join(p1, p2);
 
     drawLine(img, l, {255,0,0});
     drawPoint(img, p1, {0,200,0});
@@ -109,8 +109,8 @@ void testEuclideanVsProjective() {
     drawText(img, "Euclidean", 50, 30);
     drawText(img, "No intersection", 50, 60);
 
-    Line2D l1{0,1,-100};
-    Line2D l2{0,1,-200};
+    geometry::Line2D l1{0,1,-100};
+    geometry::Line2D l2{0,1,-200};
 
     drawLine(img, l1, {255,0,0}, 0);
     drawLine(img, l2, {0,200,0}, 0);
@@ -120,11 +120,11 @@ void testEuclideanVsProjective() {
     drawText(img, "Projective", offset+50, 30);
     drawText(img, "Intersection at infinity", offset+50, 60);
 
-    Line2D l3{0,1,-100};
-    Line2D l4{0,1,-200};
+    geometry::Line2D l3{0,1,-100};
+    geometry::Line2D l4{0,1,-200};
 
-    Line2D l3s{l3.x, l3.y, l3.z - offset*l3.x};
-    Line2D l4s{l4.x, l4.y, l4.z - offset*l4.x};
+    geometry::Line2D l3s{l3.x, l3.y, l3.z - offset*l3.x};
+    geometry::Line2D l4s{l4.x, l4.y, l4.z - offset*l4.x};
 
     drawLine(img, l3s, {255,0,0}, offset);
     drawLine(img, l4s, {0,200,0}, offset);
@@ -136,21 +136,21 @@ void testHomography() {
     int W = 1000, H = 500;
     cv::Mat img(H, W, CV_8UC3, cv::Scalar(255,255,255));
 
-    Point2D p1{100,100,1};
-    Point2D p2{400,300,1};
+    geometry::Point2D p1{100,100,1};
+    geometry::Point2D p2{400,300,1};
 
-    Line2D l = join(p1, p2);
+    geometry::Line2D l = geometry::join(p1, p2);
 
-    Homography Hm;
+    projective::Homography Hm;
     Hm.H = {{
         {1, 0.2, 50},
         {0.1, 1, 30},
         {0.0005, 0.0008, 1}
     }};
 
-    Point2D p1_t = Hm.transformPoint(p1);
-    Point2D p2_t = Hm.transformPoint(p2);
-    Line2D  l_t  = Hm.transformLine(l);
+    geometry::Point2D p1_t = Hm.transformPoint(p1);
+    geometry::Point2D p2_t = Hm.transformPoint(p2);
+    geometry::Line2D l_t = Hm.transformLine(l);
 
     drawText(img, "Original", 20, 30);
     drawLine(img, l, {255,0,0}, 0);

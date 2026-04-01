@@ -1,45 +1,49 @@
-#include "../include/transform/transform2d.h"
+#include <transform/transform2d.hpp>
 #include <cmath>
 
-Transform2D Transform2D::translation(double tx, double ty) {
-    Transform2D t;
+namespace transform {
 
-    t.H = {{
-        {1,0,tx},
-        {0,1,ty},
-        {0,0,1}
-    }};
+    Transform2D Transform2D::translation(double tx, double ty) noexcept {
+        Transform2D t;
 
-    return t;
-}
+        t.H = {{
+            {1,0,tx},
+            {0,1,ty},
+            {0,0,1}
+        }};
 
-Transform2D Transform2D::rotation(double a) {
-    double c = std::cos(a);
-    double s = std::sin(a);
+        return t;
+    }
 
-    Transform2D t;
+    Transform2D Transform2D::rotation(double a) {
+        double c = std::cos(a);
+        double s = std::sin(a);
 
-    t.H = {{
-        {c,-s,0},
-        {s, c,0},
-        {0, 0,1}
-    }};
+        Transform2D t;
 
-    return t;
-}
+        t.H = {{
+            {c,-s,0},
+            {s, c,0},
+            {0, 0,1}
+        }};
 
-Transform2D Transform2D::scale(double s) {
-    Transform2D t;
+        return t;
+    }
 
-    t.H = {{
-        {s,0,0},
-        {0,s,0},
-        {0,0,1}
-    }};
+    Transform2D Transform2D::scale(double s) noexcept {
+        Transform2D t;
 
-    return t;
-}
+        t.H = {{
+            {s,0,0},
+            {0,s,0},
+            {0,0,1}
+        }};
 
-Point2D Transform2D::apply(const Point2D& p) const {
-    return H * p;
-}
+        return t;
+    }
+
+    geometry::Point2D Transform2D::apply(const geometry::Point2D& p) const noexcept {
+        return H * p;
+    }
+
+} // namespace transform

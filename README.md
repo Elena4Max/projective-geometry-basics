@@ -146,13 +146,25 @@ viz/           → visualization (OpenCV)
 
 ---
 
-## Build
+## Build with visualization
 
 ```
 mkdir build
 cd build
-cmake ..
-make
+cmake -DBUILD_VISUALIZE=ON ..
+cmake --build .
+```
+
+---
+
+## Build with tests
+
+```
+mkdir build
+cd build
+cmake -DBUILD_TESTING=ON ..
+cmake --build .
+ctest -V
 ```
 
 ---
@@ -160,20 +172,18 @@ make
 ## Run
 
 ```
-./tests
 ./visualize
+ctest -V
 ```
 
 ---
 
-## Applications
+## Design
 
-This library demonstrates the foundations of:
-
-- homography
-- camera projection models
-- vanishing points
-- multi-view geometry
+core — low-level math (no domain logic)
+geometry — geometric primitives and operations
+transform — affine transformations
+projective — homography
 
 ---
 

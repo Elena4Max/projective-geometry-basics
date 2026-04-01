@@ -1,11 +1,16 @@
 #pragma once
-#include "vec.h"
+#include <core/vec.hpp>
+#include <core/constants.hpp>
 #include <cmath>
+
+namespace core {
 
 struct Mat3 {
     double m[3][3]{};
 
-    static Mat3 identity() {
+    constexpr Mat3() noexcept = default;
+
+    static constexpr Mat3 identity() noexcept {
         return {{
             {1,0,0},
             {0,1,0},
@@ -13,7 +18,7 @@ struct Mat3 {
         }};
     }
 
-    Vec3 operator*(const Vec3& v) const {
+    constexpr Vec3 operator*(const Vec3& v) const noexcept {
         return {
             m[0][0]*v.x + m[0][1]*v.y + m[0][2]*v.z,
             m[1][0]*v.x + m[1][1]*v.y + m[1][2]*v.z,
@@ -21,7 +26,7 @@ struct Mat3 {
         };
     }
 
-    Mat3 operator*(const Mat3& o) const {
+    constexpr Mat3 operator*(const Mat3& o) const noexcept {
         Mat3 r{};
         for(int i=0;i<3;i++)
             for(int j=0;j<3;j++)
@@ -30,7 +35,7 @@ struct Mat3 {
         return r;
     }
 
-    Mat3 transpose() const {
+    constexpr Mat3 transpose() const noexcept {
         Mat3 t{};
         for(int i=0;i<3;i++)
             for(int j=0;j<3;j++)
@@ -38,16 +43,21 @@ struct Mat3 {
         return t;
     }
 
-    double det() const {
+    constexpr double det() const noexcept {
         return
         m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1]) -
         m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0]) +
         m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
     }
 
+    bool isInvertible() const noexcept {
+        return std::abs(det()) >= kEps;
+    }
+
     Mat3 inverse() const {
-        Mat3 r{};
         double d = det();
+
+        Mat3 r{};
 
         r.m[0][0] = (m[1][1]*m[2][2]-m[1][2]*m[2][1])/d;
         r.m[0][1] = (m[0][2]*m[2][1]-m[0][1]*m[2][2])/d;
@@ -64,3 +74,5 @@ struct Mat3 {
         return r;
     }
 };
+
+} // namespace core
