@@ -178,15 +178,6 @@ ctest -V
 
 ---
 
-## Design
-
-core — low-level math (no domain logic)
-geometry — geometric primitives and operations
-transform — affine transformations
-projective — homography
-
----
-
 ## Roadmap
 
 - homography estimation from point correspondences
