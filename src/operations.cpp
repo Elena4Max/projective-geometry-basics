@@ -8,7 +8,9 @@ bool incidence(const Point2D& p, const Line2D& l) noexcept {
 }
 
 Point2D normalize(const Point2D& p) noexcept {
-    if (std::abs(p.z) < core::kEps) return p;
+    if (std::abs(p.z) < core::kEps) {
+        return p;
+    }
     return {p.x / p.z, p.y / p.z, 1.0};
 }
 

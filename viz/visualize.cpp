@@ -15,8 +15,10 @@ void drawText(cv::Mat& img, const std::string& text, int x, int y) {
         cv::FONT_HERSHEY_SIMPLEX, 0.6, {0,0,0}, 1);
 }
 
-void drawPoint(cv::Mat& img, const geometry::Point2D& p, cv::Scalar color, int offsetX = 0) {
-    if (geometry::isAtInfinity(p)) return;
+void drawPoint(cv::Mat& img, const geometry::Point2D& p, const cv::Scalar& color, int offsetX = 0) {
+    if (geometry::isAtInfinity(p)) {
+        return;
+    }
 
     geometry::Point2D pn = geometry::normalize(p);
     cv::circle(img,
@@ -24,7 +26,7 @@ void drawPoint(cv::Mat& img, const geometry::Point2D& p, cv::Scalar color, int o
         5, color, -1);
 }
 
-void drawLine(cv::Mat& img, const geometry::Line2D& l, cv::Scalar color, int offsetX = 0) {
+void drawLine(cv::Mat& img, const geometry::Line2D& l, const cv::Scalar& color, int offsetX = 0) {
     int w = img.cols;
     int h = img.rows;
 
@@ -104,8 +106,9 @@ void testJoin() {
 }
 
 void testEuclideanVsProjective() {
-    int W = 1000, H = 500;
-    cv::Mat img(H, W, CV_8UC3, cv::Scalar(255,255,255));
+    int width = 1000;
+    int height = 500;
+    cv::Mat img(height, width, CV_8UC3, cv::Scalar(255,255,255));
 
     drawText(img, "Euclidean", 50, 30);
     drawText(img, "No intersection", 50, 60);
@@ -116,7 +119,7 @@ void testEuclideanVsProjective() {
     drawLine(img, l1, {255,0,0}, 0);
     drawLine(img, l2, {0,200,0}, 0);
 
-    int offset = W/2;
+    int offset = width/2;
 
     drawText(img, "Projective", offset+50, 30);
     drawText(img, "Intersection at infinity", offset+50, 60);
@@ -134,8 +137,9 @@ void testEuclideanVsProjective() {
 }
 
 void testHomography() {
-    int W = 1000, H = 500;
-    cv::Mat img(H, W, CV_8UC3, cv::Scalar(255,255,255));
+    int width = 1000;
+    int height = 500;
+    cv::Mat img(height, width, CV_8UC3, cv::Scalar(255,255,255));
 
     geometry::Point2D p1{100,100,1};
     geometry::Point2D p2{400,300,1};
@@ -143,11 +147,11 @@ void testHomography() {
     geometry::Line2D l = geometry::join(p1, p2);
 
     projective::Homography Hm;
-    Hm.H = {{
-        {1, 0.2, 50},
-        {0.1, 1, 30},
-        {0.0005, 0.0008, 1}
-    }};
+    Hm.H = core::Mat3(
+        1,     0.2,   50,
+        0.1,   1,     30,
+        0.0005,0.0008,1
+    );
 
     geometry::Point2D p1_t = Hm.transformPoint(p1);
     geometry::Point2D p2_t = Hm.transformPoint(p2);
@@ -158,7 +162,7 @@ void testHomography() {
     drawPoint(img, p1, {0,200,0}, 0);
     drawPoint(img, p2, {0,200,0}, 0);
 
-    int offset = W/2;
+    int offset = width/2;
 
     drawText(img, "After Homography", offset+20, 30);
     drawText(img, "Incidence preserved", offset+20, 60);

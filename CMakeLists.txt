@@ -11,7 +11,7 @@ add_library(geometry
 
 target_include_directories(geometry PUBLIC include)
 
-target_compile_features(geometry PUBLIC cxx_std_17)
+target_compile_features(geometry PUBLIC cxx_std_20)
 
 find_package(OpenCV REQUIRED)
 

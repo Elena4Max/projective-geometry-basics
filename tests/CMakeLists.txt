@@ -14,6 +14,6 @@ target_link_libraries(geometry_tests
         Threads::Threads
 )
 
-target_compile_features(geometry_tests PRIVATE cxx_std_17)
+target_compile_features(geometry_tests PRIVATE cxx_std_20)
 
 add_test(NAME geometry_tests COMMAND geometry_tests)

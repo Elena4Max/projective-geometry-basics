@@ -6,7 +6,11 @@ namespace transform {
 Transform2D Transform2D::translation(double tx, double ty) noexcept {
     Transform2D t;
 
-    t.H = {{{1, 0, tx}, {0, 1, ty}, {0, 0, 1}}};
+    t.H = core::Mat3(
+        1, 0, tx,
+        0, 1, ty,
+        0, 0, 1
+    );
 
     return t;
 }
@@ -17,7 +21,11 @@ Transform2D Transform2D::rotation(double a) noexcept {
 
     Transform2D t;
 
-    t.H = {{{c, -s, 0}, {s, c, 0}, {0, 0, 1}}};
+    t.H = core::Mat3(
+        c, -s, 0,
+        s, c, 0,
+        0, 0, 1
+    );
 
     return t;
 }
@@ -25,7 +33,11 @@ Transform2D Transform2D::rotation(double a) noexcept {
 Transform2D Transform2D::scale(double s) noexcept {
     Transform2D t;
 
-    t.H = {{{s, 0, 0}, {0, s, 0}, {0, 0, 1}}};
+    t.H = core::Mat3(
+        s, 0, 0,
+        0, s, 0,
+        0, 0, 1
+    );
 
     return t;
 }

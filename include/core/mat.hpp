@@ -6,11 +6,26 @@
 namespace core {
 
 struct Mat3 {
-    double m[3][3]{};
+    double m[3][3];
 
-    constexpr Mat3() noexcept = default;
+    constexpr Mat3() noexcept : m{{0,0,0},{0,0,0},{0,0,0}} {}
+    
+    constexpr Mat3(double a00, double a01, double a02,
+               double a10, double a11, double a12,
+               double a20, double a21, double a22) noexcept
+    : m{
+        {a00, a01, a02},
+        {a10, a11, a12},
+        {a20, a21, a22}
+      } {}
 
-    static constexpr Mat3 identity() noexcept { return {{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}}; }
+    static constexpr Mat3 identity() noexcept {
+        return Mat3(
+            1, 0, 0,
+            0, 1, 0,
+            0, 0, 1
+        );
+    }
 
     constexpr Vec3 operator*(const Vec3& v) const noexcept {
         return {m[0][0] * v.x + m[0][1] * v.y + m[0][2] * v.z,
