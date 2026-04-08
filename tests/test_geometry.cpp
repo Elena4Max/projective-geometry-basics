@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
-#include <geometry/operations.hpp>
+
 #include <core/constants.hpp>
+#include <geometry/operations.hpp>
 
 TEST(GeometryTest, JoinPointsIncidence) {
     geometry::Point2D p1{0, 0, 1};

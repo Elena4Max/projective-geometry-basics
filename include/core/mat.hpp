@@ -5,62 +5,70 @@
 
 namespace core {
 
+/// @file mat.hpp
+/// @brief 3x3 matrix for projective transformations.
+
+/// @brief 3x3 matrix (row-major storage).
 struct Mat3 {
     double m[3][3];
 
-    constexpr Mat3() noexcept : m{{0,0,0},{0,0,0},{0,0,0}} {}
-    
-    constexpr Mat3(double a00, double a01, double a02,
-               double a10, double a11, double a12,
-               double a20, double a21, double a22) noexcept
-    : m{
-        {a00, a01, a02},
-        {a10, a11, a12},
-        {a20, a21, a22}
-      } {}
+    /// @brief Default constructor (zero matrix).
+    constexpr Mat3() noexcept : m{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}} {}
 
-    static constexpr Mat3 identity() noexcept {
-        return Mat3(
-            1, 0, 0,
-            0, 1, 0,
-            0, 0, 1
-        );
-    }
+    /// @brief Constructs matrix from elements (row-major).
+    constexpr Mat3(double a00, double a01, double a02, double a10, double a11, double a12,
+                   double a20, double a21, double a22) noexcept
+        : m{{a00, a01, a02}, {a10, a11, a12}, {a20, a21, a22}} {}
 
+    /// @brief Returns identity matrix.
+    static constexpr Mat3 identity() noexcept { return Mat3(1, 0, 0, 0, 1, 0, 0, 0, 1); }
+
+    /// @brief Matrix-vector multiplication.
     constexpr Vec3 operator*(const Vec3& v) const noexcept {
         return {m[0][0] * v.x + m[0][1] * v.y + m[0][2] * v.z,
                 m[1][0] * v.x + m[1][1] * v.y + m[1][2] * v.z,
                 m[2][0] * v.x + m[2][1] * v.y + m[2][2] * v.z};
     }
 
+    /// @brief Matrix multiplication.
     constexpr Mat3 operator*(const Mat3& o) const noexcept {
         Mat3 r{};
-        for (int i = 0; i < 3; i++)
-            for (int j = 0; j < 3; j++)
-                for (int k = 0; k < 3; k++) r.m[i][j] += m[i][k] * o.m[k][j];
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 3; ++j) {
+                for (int k = 0; k < 3; ++k) {
+                    r.m[i][j] += m[i][k] * o.m[k][j];
+                }
+            }
+        }
         return r;
     }
 
+    /// @brief Returns transposed matrix.
     constexpr Mat3 transpose() const noexcept {
         Mat3 t{};
-        for (int i = 0; i < 3; i++)
-            for (int j = 0; j < 3; j++) t.m[i][j] = m[j][i];
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 3; ++j) {
+                t.m[i][j] = m[j][i];
+            }
+        }
         return t;
     }
 
+    /// @brief Returns determinant.
     constexpr double det() const noexcept {
         return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
                m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
                m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
     }
 
+    /// @brief Returns true if matrix is invertible.
     bool isInvertible() const noexcept { return std::abs(det()) >= kEps; }
 
-    /// \brief Computes inverse of matrix.
-    /// \warning Behavior is undefined if matrix is not invertible.
-    /// \pre determinant != 0
+    /// @brief Returns inverse matrix.
+    /// @pre det() != 0
+    /// @note Undefined behavior if matrix is singular.
     Mat3 inverse() const noexcept {
-        double d = det();
+        const double d = det();
 
         Mat3 r{};
 

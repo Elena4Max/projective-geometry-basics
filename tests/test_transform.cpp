@@ -1,7 +1,8 @@
 #include <gtest/gtest.h>
-#include <transform/transform2d.hpp>
-#include <geometry/operations.hpp>
+
 #include <core/constants.hpp>
+#include <geometry/operations.hpp>
+#include <transform/transform2d.hpp>
 
 TEST(TransformTest, Translation) {
     geometry::Point2D p{1, 2, 1};
