@@ -5,7 +5,8 @@
 
 #include <core/constants.hpp>
 
-cv::Point2d toCartesian(const geometry::Point2D& p) {
+cv::Point2d toCartesian(
+    geometry::Point2D& p) {
     return {p.x / p.z, p.y / p.z};
 }
 

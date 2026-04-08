@@ -15,7 +15,7 @@ namespace transform {
         return t;
     }
 
-    Transform2D Transform2D::rotation(double a) {
+    Transform2D Transform2D::rotation(double a) noexcept{
         double c = std::cos(a);
         double s = std::sin(a);
 

@@ -54,7 +54,10 @@ struct Mat3 {
         return std::abs(det()) >= kEps;
     }
 
-    Mat3 inverse() const {
+    /// \brief Computes inverse of matrix.
+    /// \warning Behavior is undefined if matrix is not invertible.
+    /// \pre determinant != 0
+    Mat3 inverse() const noexcept{
         double d = det();
 
         Mat3 r{};
