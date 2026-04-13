@@ -161,6 +161,5 @@ ctest -V
 
 ## Roadmap
 
-- homography estimation from point correspondences
 - camera model (3D → 2D projection)
 - epipolar geometry
