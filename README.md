@@ -1,110 +1,92 @@
-# Projective Geometry Basics (C++)
+# Panorama Stitching (C++)
 
 ## Goal
 
-Understand how basic geometric operations used in computer vision  
-can be expressed using linear algebra and homogeneous coordinates.
+Build a simple panorama stitching pipeline  
+using projective geometry and homography estimation.
 
 ---
 
 ## Key Idea
 
-In projective geometry:
+Two images of the same scene can be aligned  
+using a homography:
 
-- a point is a vector `(x, y, w)`
-- a line is a vector `(a, b, c)`
 
-Their relationship is defined by:
-
-```
-a x + b y + c w = 0
-```
-
-This allows all geometric operations to be expressed using:
-
-- dot product → incidence (point lies on line)
-- cross product → construction (join / meet)
-
----
-
-## Representation
-
-```cpp
-struct Vec3 {
-    double x, y, z;
-};
-
-using Point = Vec3; // (x, y, w)
-using Line  = Vec3; // (a, b, c)
-```
-
----
-
-## Core Operations
-
-| Operation | Formula         | Meaning                 |
-|----------|----------------|-------------------------|
-| Incidence | dot(l, p) = 0 | Point lies on line      |
-| Join      | l = p1 × p2   | Line through two points |
-| Meet      | p = l1 × l2   | Intersection of lines   |
-
----
-
-## Transformations
-
-### Euclidean / Affine
-
-```
-Transform2D::translation(...)
-Transform2D::rotation(...)
-Transform2D::scale(...)
-```
-
-### Projective (Homography)
-
-```
 x' = Hx
-l' = H^{-T} l
-```
 
-Projective transformations preserve incidence relationships  
-between points and lines.
+
+If correct correspondences are found,  
+a single projective transform maps one image onto another.
 
 ---
 
-## Key Property
+## Pipeline
 
-```
-p ∈ l  →  H(p) ∈ H(l)
-```
+The pipeline is implemented as a sequence of processing steps:
 
-A point lying on a line remains on the corresponding transformed line.
+- detect keypoints and compute descriptors
+- match descriptors between images
+- filter matches using RANSAC
+- estimate homography
+- warp image using the estimated transform
+- blend overlapping regions
+
+The same pipeline is applied in two ways:
+
+- custom implementation
+- OpenCV implementation (`cv::findHomography`)
+
+The difference lies in how the homography is estimated.
+
+---
+
+## Implementation Details
+
+### Custom Pipeline
+
+The homography is estimated from a set of point correspondences between images by solving a system of linear equations. A linear method (Direct Linear Transform, DLT) is used to recover the transformation matrix up to scale.
+
+To improve numerical stability, the input points are normalized prior to estimation. This reduces numerical errors when solving the system.
+
+Since real-world correspondences typically contain outliers, the estimation is performed within a robust framework. A RANSAC-based approach is used, where minimal subsets of correspondences are iteratively sampled to compute candidate models, which are then evaluated against all data.
+
+The quality of each model is determined by the number of inliers, defined using a reprojection error threshold. The best model is selected, and the final homography is re-estimated using all inliers.
+
+---
+
+### OpenCV Pipeline
+
+The OpenCV-based approach uses the built-in function `cv::findHomography`, which internally performs both normalization and robust estimation.
+
+Given a set of point correspondences, the function applies a RANSAC-based procedure to estimate the homography while handling outliers.
+
+---
+
+## Result
+
+- both methods produce visually similar panoramas
+- alignment is correct in both cases
+- differences are minor and mostly visible in edge regions
+
+---
+
+## Key Observations
+
+- homography quality depends primarily on match quality
+- RANSAC has a stronger impact than the specific DLT implementation
+- normalization improves numerical stability but does not fix bad matches
+- limiting the number of matches can improve robustness
+- simple implementations can perform comparably to library solutions
 
 ---
 
 ## Visualization
 
-### Join (line through two points)
+Generated outputs:
 
-![join](images/join.png)
-
-### Meet (intersection of lines)
-
-![intersection](images/intersection.png)
-
-### Parallel lines
-
-![parallel](images/parallel.png)
-
-Parallel lines intersect at infinity (w ≈ 0) in projective space.
-
-### Euclidean vs Projective
-
-![comparison](images/euclidean_vs_projective.png)
-
-### Homography
-
-![homography](images/homography.png)
+- `pano_my.jpg`  → custom homography
+- `pano_cv.jpg`  → OpenCV homography
 
 ---
 
@@ -112,21 +94,8 @@ Parallel lines intersect at infinity (w ≈ 0) in projective space.
 
 Unit tests cover:
 
-- incidence correctness
-- join/meet consistency
-- behavior of parallel lines
-- normalization of homogeneous coordinates
-- transformation correctness
-- incidence preservation under homography
-
-Example:
-
-```
-EXPECT_TRUE(incidence(p, l));
-EXPECT_TRUE(isAtInfinity(p));
-```
-
----
+- homography estimation on synthetic data
+- consistency between custom and OpenCV implementations
 
 ## Project Structure
 
@@ -172,7 +141,7 @@ ctest -V
 ## Run
 
 ```
-./visualize
+./visualize img1.jpg img2.jpg
 ctest -V
 ```
 

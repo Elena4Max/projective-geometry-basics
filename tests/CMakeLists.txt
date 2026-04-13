@@ -4,6 +4,7 @@ add_executable(geometry_tests
     test_geometry.cpp
     test_transform.cpp
     test_homography.cpp
+    test_homography_estimation.cpp
 )
 
 target_link_libraries(geometry_tests
