@@ -83,10 +83,22 @@ Given a set of point correspondences, the function applies a RANSAC-based proced
 
 ## Visualization
 
-Generated outputs:
+### Input Images
 
-- `pano_my.jpg`  → custom homography
-- `pano_cv.jpg`  → OpenCV homography
+![img1](images/img1.jpg)
+![img2](images/img2.jpg)
+
+---
+
+### Result: Custom Homography
+
+![custom](images/pano_my.jpg)
+
+---
+
+### Result: OpenCV Homography
+
+![opencv](images/pano_cv.jpg)
 
 ---
 
