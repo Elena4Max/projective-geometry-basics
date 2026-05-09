@@ -1,31 +1,45 @@
 #include <Eigen/Dense>
 #include <cassert>
+#include <iostream>
 #include <projective/homography_estimation.hpp>
+#include <random>
+#include <unordered_set>
 
 namespace projective {
 
 std::pair<std::vector<geometry::Point2D>, core::Mat3> normalizePoints(
-    const std::vector<geometry::Point2D>& pts) {
-    double cx = 0, cy = 0;
+    const std::vector<geometry::Point2D>& pts) noexcept {
+    if (pts.empty()) {
+        return {{}, core::Mat3::identity()};
+    }
+
+    double cx = 0.0, cy = 0.0;
+    std::vector<geometry::Point2D> normalized;
+    normalized.reserve(pts.size());
 
     for (const auto& p : pts) {
         auto pn = geometry::normalize(p);
         cx += pn.x;
         cy += pn.y;
+        normalized.push_back(pn);
     }
 
     cx /= static_cast<double>(pts.size());
     cy /= static_cast<double>(pts.size());
 
-    double meanDist = 0;
+    double meanDist = 0.0;
 
-    for (auto& p : pts) {
-        double x = p.x / p.z - cx;
-        double y = p.y / p.z - cy;
-        meanDist += std::sqrt(x * x + y * y);
+    for (const auto& pn : normalized) {
+        double dx = pn.x - cx;
+        double dy = pn.y - cy;
+        meanDist += std::sqrt(dx * dx + dy * dy);
     }
 
-    meanDist /= static_cast<double>(pts.size());
+    meanDist /= static_cast<double>(normalized.size());
+
+    if (meanDist < core::kEps) {
+        return {normalized, core::Mat3::identity()};
+    }
 
     double s = std::sqrt(2.0) / meanDist;
 
@@ -34,73 +48,51 @@ std::pair<std::vector<geometry::Point2D>, core::Mat3> normalizePoints(
 
     core::Mat3 T = S.H * Tr.H;
 
-    std::vector<geometry::Point2D> norm;
-    norm.reserve(pts.size());
+    std::vector<geometry::Point2D> norm(normalized.size());
 
-    for (auto& p : pts) {
-        norm.push_back(T * p);
-    }
+    std::transform(normalized.begin(), normalized.end(), norm.begin(),
+                   [&T](const auto& pn) { return T * pn; });
 
     return {norm, T};
 }
 
 core::Mat3 estimateHomography(
-    const std::vector<std::pair<geometry::Point2D, geometry::Point2D>>& correspondences) {
-    const int N = static_cast<int>(correspondences.size());
-    assert(N >= 4 && "Need at least 4 point correspondences");
+    const std::vector<std::pair<geometry::Point2D, geometry::Point2D>>& correspondences) noexcept {
+    assert(correspondences.size() >= 4 && "Need at least 4 point correspondences");
 
-    std::vector<geometry::Point2D> pts1, pts2;
-    pts1.reserve(N);
-    pts2.reserve(N);
+    auto [src, T1] = normalizePoints([&]() {
+        std::vector<geometry::Point2D> v;
+        for (const auto& c : correspondences) v.push_back(c.first);
+        return v;
+    }());
 
-    for (auto& [p, p2] : correspondences) {
-        pts1.push_back(p);
-        pts2.push_back(p2);
-    }
+    auto [dst, T2] = normalizePoints([&]() {
+        std::vector<geometry::Point2D> v;
+        for (const auto& c : correspondences) v.push_back(c.second);
+        return v;
+    }());
 
-    auto [n1, T1] = normalizePoints(pts1);
-    auto [n2, T2] = normalizePoints(pts2);
+    Eigen::MatrixXd A(2 * correspondences.size(), 9);
 
-    Eigen::MatrixXd A(2 * N, 9);
+    for (size_t i = 0; i < correspondences.size(); ++i) {
+        const double x = src[i].x;
+        const double y = src[i].y;
+        const double xp = dst[i].x;
+        const double yp = dst[i].y;
 
-    for (int i = 0; i < N; ++i) {
-        const auto& p = n1[i];
-        const auto& p_prime = n2[i];
-
-        const double x = p.x;
-        const double y = p.y;
-        const double w = p.z;
-
-        const double xp = p_prime.x;
-        const double yp = p_prime.y;
-
-        A(2 * i, 0) = 0;
-        A(2 * i, 1) = 0;
-        A(2 * i, 2) = 0;
-        A(2 * i, 3) = -x;
-        A(2 * i, 4) = -y;
-        A(2 * i, 5) = -w;
-        A(2 * i, 6) = yp * x;
-        A(2 * i, 7) = yp * y;
-        A(2 * i, 8) = yp * w;
-
-        A(2 * i + 1, 0) = x;
-        A(2 * i + 1, 1) = y;
-        A(2 * i + 1, 2) = w;
-        A(2 * i + 1, 3) = 0;
-        A(2 * i + 1, 4) = 0;
-        A(2 * i + 1, 5) = 0;
-        A(2 * i + 1, 6) = -xp * x;
-        A(2 * i + 1, 7) = -xp * y;
-        A(2 * i + 1, 8) = -xp * w;
+        A.row(2 * i) << -x, -y, -1, 0, 0, 0, x * xp, y * xp, xp;
+        A.row(2 * i + 1) << 0, 0, 0, -x, -y, -1, x * yp, y * yp, yp;
     }
 
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(A, Eigen::ComputeFullV);
+    if (svd.rank() < 8) {
+        return core::Mat3::identity();
+    }
     Eigen::VectorXd h = svd.matrixV().col(8);
 
-    core::Mat3 H_norm(h(0), h(1), h(2), h(3), h(4), h(5), h(6), h(7), h(8));
+    core::Mat3 H(h(0), h(1), h(2), h(3), h(4), h(5), h(6), h(7), h(8));
 
-    core::Mat3 H = T2.inverse() * H_norm * T1;
+    H = T2.inverse() * H * T1;
 
     if (std::abs(H.m[2][2]) > core::kEps) {
         double s = H.m[2][2];
@@ -109,6 +101,71 @@ core::Mat3 estimateHomography(
     }
 
     return H;
+}
+
+core::Mat3 estimateHomographyRansac(
+    const std::vector<std::pair<geometry::Point2D, geometry::Point2D>>& correspondences,
+    double threshold, int iterations) noexcept {
+    std::mt19937 rng(42);
+    std::uniform_int_distribution<int> dist(0, correspondences.size() - 1);
+
+    core::Mat3 bestH;
+    size_t bestInliers = 0;
+
+    for (int it = 0; it < iterations; ++it) {
+        std::unordered_set<int> indices;
+        while (indices.size() < 4) {
+            indices.insert(dist(rng));
+        }
+
+        std::vector<std::pair<geometry::Point2D, geometry::Point2D>> sample;
+        for (int idx : indices) {
+            sample.push_back(correspondences[idx]);
+        }
+
+        auto H = estimateHomography(sample);
+
+        size_t count = 0;
+        std::vector<std::pair<geometry::Point2D, geometry::Point2D>> inliers;
+
+        for (const auto& c : correspondences) {
+            double err = reprojectionError(H, c.first, c.second);
+
+            if (err < threshold) {
+                count++;
+                inliers.push_back(c);
+            }
+        }
+
+        std::cout << "Iteration: " << it << ", inliers: " << count << " / "
+                  << correspondences.size() << '\n';
+
+        if (count > bestInliers) {
+            bestInliers = count;
+            bestH = estimateHomography(inliers);
+        }
+    }
+
+    std::cout << "Best inliers: " << bestInliers << " / " << correspondences.size() << '\n';
+
+    return bestH;
+}
+
+static double reprojectionError(const core::Mat3& H, const geometry::Point2D& p,
+                                const geometry::Point2D& q) noexcept {
+    auto Hp = H * p;
+
+    if ((std::abs(Hp.z) < core::kEps) || (std::abs(q.z) < core::kEps)) {
+        return core::kInf;
+    }
+
+    auto Hn = geometry::normalize(Hp);
+    auto qn = geometry::normalize(q);
+
+    double dx = Hn.x - qn.x;
+    double dy = Hn.y - qn.y;
+
+    return std::sqrt(dx * dx + dy * dy);
 }
 
 }  // namespace projective

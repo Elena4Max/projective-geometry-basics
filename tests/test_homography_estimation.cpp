@@ -4,15 +4,9 @@
 #include <projective/homography_estimation.hpp>
 
 using core::Mat3;
+using geometry::normalize;
 using geometry::Point2D;
 using projective::estimateHomography;
-
-static Point2D normalize(const Point2D& p) {
-    if (std::abs(p.z) < 1e-9) {
-        return p;
-    }
-    return {p.x / p.z, p.y / p.z, 1.0};
-}
 
 TEST(HomographyEstimation, RecoversKnownTransform) {
     Mat3 H_true(1.0, 0.2, 50.0, 0.1, 1.0, 30.0, 0.0005, 0.0008, 1.0);
@@ -40,8 +34,6 @@ TEST(HomographyEstimation, RecoversKnownTransform) {
 }
 
 TEST(HomographyEstimation, Identity) {
-    Mat3 H = Mat3::identity();
-
     std::vector<std::pair<Point2D, Point2D>> corr = {
         {{0, 0, 1}, {0, 0, 1}},
         {{1, 0, 1}, {1, 0, 1}},
