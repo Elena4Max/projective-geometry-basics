@@ -7,9 +7,6 @@ namespace projective {
 struct Homography {
     core::Mat3 H;
 
-    /// @brief Applies homography to a point.
-    geometry::Point2D transformPoint(const geometry::Point2D& p) const noexcept;
-
     /// @brief Applies homography to a line.
     /// @note Uses dual transform: l' = H^{-T} l
     geometry::Line2D transformLine(const geometry::Line2D& l) const noexcept;

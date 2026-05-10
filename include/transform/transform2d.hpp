@@ -16,9 +16,6 @@ struct Transform2D {
 
     /// @brief Creates uniform scaling transform.
     static Transform2D scale(double s) noexcept;
-
-    /// @brief Applies transform to a point.
-    geometry::Point2D apply(const geometry::Point2D& p) const noexcept;
 };
 
 }  // namespace transform

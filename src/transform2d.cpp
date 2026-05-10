@@ -29,7 +29,4 @@ Transform2D Transform2D::scale(double s) noexcept {
 
     return t;
 }
-
-geometry::Point2D Transform2D::apply(const geometry::Point2D& p) const noexcept { return H * p; }
-
 }  // namespace transform

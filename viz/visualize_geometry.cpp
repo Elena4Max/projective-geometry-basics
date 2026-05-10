@@ -124,34 +124,44 @@ void testEuclideanVsProjective() {
 }
 
 void testHomography() {
-    int width = 1000;
-    int height = 500;
+    const int width = 1000;
+    const int height = 500;
+
     cv::Mat img(height, width, CV_8UC3, cv::Scalar(255, 255, 255));
 
     geometry::Point2D p1{100, 100, 1};
     geometry::Point2D p2{400, 300, 1};
 
-    geometry::Line2D l = geometry::join(p1, p2);
+    auto l = geometry::join(p1, p2);
 
     projective::Homography Hm;
+
     Hm.H = core::Mat3(1, 0.2, 50, 0.1, 1, 30, 0.0005, 0.0008, 1);
 
-    geometry::Point2D p1_t = Hm.transformPoint(p1);
-    geometry::Point2D p2_t = Hm.transformPoint(p2);
-    geometry::Line2D l_t = Hm.transformLine(l);
+    auto p1_t = geometry::normalize(Hm.H * p1);
+
+    auto p2_t = geometry::normalize(Hm.H * p2);
+
+    auto l_t = Hm.transformLine(l);
 
     drawText(img, "Original", 20, 30);
+
     drawLine(img, l, {255, 0, 0}, 0);
+
     drawPoint(img, p1, {0, 200, 0}, 0);
+
     drawPoint(img, p2, {0, 200, 0}, 0);
 
-    int offset = width / 2;
+    const int offset = width / 2;
 
     drawText(img, "After Homography", offset + 20, 30);
+
     drawText(img, "Incidence preserved", offset + 20, 60);
 
     drawLine(img, l_t, {255, 0, 0}, offset);
+
     drawPoint(img, p1_t, {0, 200, 0}, offset);
+
     drawPoint(img, p2_t, {0, 200, 0}, offset);
 
     save(img, "homography.png");
