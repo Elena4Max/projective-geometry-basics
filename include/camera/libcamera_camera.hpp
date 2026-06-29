@@ -1,0 +1,40 @@
+#pragma once
+
+#include <memory>
+
+#include <opencv2/core.hpp>
+
+#include <libcamera/camera.h>
+#include <libcamera/camera_manager.h>
+#include <libcamera/framebuffer_allocator.h>
+#include <libcamera/request.h>
+
+#include "camera/camera.hpp"
+
+namespace camera
+{
+
+class LibcameraCamera final : public Camera
+{
+public:
+    explicit LibcameraCamera(int cameraId = 0);
+    ~LibcameraCamera() override;
+
+    bool open() override;
+    bool read(cv::Mat& frame) override;
+    void close() override;
+
+private:
+    int cameraId_;
+
+    bool opened_{false};
+
+    std::unique_ptr<libcamera::CameraManager> manager_;
+    std::shared_ptr<libcamera::Camera> camera_;
+    std::unique_ptr<libcamera::CameraConfiguration> configuration_;
+    std::unique_ptr<libcamera::FrameBufferAllocator> allocator_;
+    std::vector<std::unique_ptr<libcamera::Request>> requests_;
+
+};
+
+}

@@ -1,7 +1,8 @@
 #pragma once
 
-#include <opencv2/core.hpp>
-#include <opencv2/videoio.hpp>
+#include <memory>
+
+#include "camera/camera.hpp"
 
 namespace camera
 {
@@ -9,7 +10,7 @@ namespace camera
 class CameraDevice
 {
 public:
-    explicit CameraDevice(int cameraId = 0);
+    explicit CameraDevice(std::unique_ptr<Camera> camera);
 
     bool open();
 
@@ -18,8 +19,7 @@ public:
     void close();
 
 private:
-    int cameraId_;
-    cv::VideoCapture capture_;
+    std::unique_ptr<Camera> camera_;
 };
 
-} // namespace camera
+}

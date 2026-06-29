@@ -3,24 +3,24 @@
 namespace camera
 {
 
-CameraDevice::CameraDevice(int cameraId)
-    : cameraId_(cameraId)
+CameraDevice::CameraDevice(std::unique_ptr<Camera> camera)
+    : camera_(std::move(camera))
 {
 }
 
 bool CameraDevice::open()
 {
-    return capture_.open(cameraId_);
+    return camera_->open();
 }
 
 bool CameraDevice::read(cv::Mat& frame)
 {
-    return capture_.read(frame);
+    return camera_->read(frame);
 }
 
 void CameraDevice::close()
 {
-    capture_.release();
+    camera_->close();
 }
 
 }

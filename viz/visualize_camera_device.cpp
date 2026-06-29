@@ -3,10 +3,16 @@
 #include <opencv2/imgcodecs.hpp>
 
 #include "camera/camera_device.hpp"
+#include <memory>
+
+#include "camera/libcamera_camera.hpp"
 
 int main()
 {
-    camera::CameraDevice camera(0);
+    auto backend =
+        std::make_unique<camera::LibcameraCamera>(0);
+
+    camera::CameraDevice camera(std::move(backend));
 
     if (!camera.open())
     {
@@ -26,7 +32,10 @@ int main()
               << frame.cols << " x "
               << frame.rows << '\n';
 
-    cv::imwrite("frame.png", frame);
+    if (!frame.empty())
+    {
+        cv::imwrite("frame.png", frame);
+    }
 
     camera.close();
 

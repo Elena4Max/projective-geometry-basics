@@ -35,6 +35,7 @@ add_library(camera
     src/camera_projection.cpp
     src/camera_device.cpp
     src/rotation.cpp
+    src/libcamera_camera.cpp
 )
 
 target_include_directories(camera
@@ -67,6 +68,7 @@ target_link_libraries(
     PRIVATE
     geometry
     camera
+    PkgConfig::LIBCAMERA
     ${OpenCV_LIBS}
 )
 
