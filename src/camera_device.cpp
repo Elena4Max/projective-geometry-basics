@@ -72,6 +72,10 @@ bool CameraDevice::open()
 
     if (buffers.empty())
         return false;
+
+    if (camera_->start())
+        return false;
+
     return true;
 }
 
@@ -81,6 +85,7 @@ void CameraDevice::close() noexcept
 
     if (camera_)
     {
+        camera_->stop();
         camera_->release();
         camera_.reset();
     }
