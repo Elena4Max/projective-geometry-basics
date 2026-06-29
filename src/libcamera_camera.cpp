@@ -53,7 +53,16 @@ configuration_->validate();
 if (camera_->configure(configuration_.get()))
     return false;
 
+const auto& cfg = configuration_->at(0);
 
+std::cout
+    << "Stream configuration:\n"
+    << cfg.size.width
+    << " x "
+    << cfg.size.height
+    << '\n'
+    << cfg.pixelFormat.toString()
+    << '\n';
 
 allocator_ = std::make_unique<libcamera::FrameBufferAllocator>(camera_);
 
@@ -93,19 +102,22 @@ std::cout
     << '\n';
 
 
+if (camera_->start())
+    return false;
 
-const auto& cfg = configuration_->at(0);
+std::cout << "Camera started\n";
 
-std::cout
-    << "Stream configuration:\n"
-    << cfg.size.width
-    << " x "
-    << cfg.size.height
-    << '\n'
-    << cfg.pixelFormat.toString()
-    << '\n';
+camera_->requestCompleted.connect(
+    this,
+    &LibcameraCamera::requestCompleted);
 
+for (auto& request : requests_)
+{
+    if (camera_->queueRequest(request.get()))
+        return false;
+}
 
+std::cout << "Requests queued\n";
 
     opened_ = true;
 
@@ -121,6 +133,8 @@ void LibcameraCamera::close()
 {
     if (camera_)
     {
+        camera_->stop();
+
         requests_.clear();
         allocator_.reset();
 
@@ -135,6 +149,21 @@ void LibcameraCamera::close()
     }
 
     opened_ = false;
+}
+
+void LibcameraCamera::requestCompleted(libcamera::Request* request)
+{
+    if (request->status() == libcamera::Request::RequestCancelled)
+        return;
+
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        completedRequest_ = request;
+    }
+
+    std::cout << "Frame received\n";
+
+    condition_.notify_one();
 }
 
 }

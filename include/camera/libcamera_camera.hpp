@@ -11,6 +11,9 @@
 
 #include "camera/camera.hpp"
 
+#include <condition_variable>
+#include <mutex>
+
 namespace camera
 {
 
@@ -34,6 +37,13 @@ private:
     std::unique_ptr<libcamera::CameraConfiguration> configuration_;
     std::unique_ptr<libcamera::FrameBufferAllocator> allocator_;
     std::vector<std::unique_ptr<libcamera::Request>> requests_;
+
+void requestCompleted(libcamera::Request* request);
+
+std::mutex mutex_;
+std::condition_variable condition_;
+
+libcamera::Request* completedRequest_{nullptr};
 
 };
 
