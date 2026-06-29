@@ -8,24 +8,27 @@ int main()
 {
     camera::CameraDevice camera(0);
 
-    if (!camera.isOpened())
+    if (!camera.open())
     {
-        std::cout << "Failed to initialize camera\n";
+        std::cout << "Failed to open camera\n";
         return -1;
     }
-
 
     cv::Mat frame;
 
     if (!camera.read(frame))
     {
-        std::cout << "Read failed\n";
+        std::cout << "Failed to capture frame\n";
         return -1;
     }
 
-    std::cout << "Request completed\n";
+    std::cout << "Captured frame: "
+              << frame.cols << " x "
+              << frame.rows << '\n';
 
-    std::cout << "Camera initialized successfully\n";
+    cv::imwrite("frame.png", frame);
+
+    camera.close();
 
     return 0;
 }
