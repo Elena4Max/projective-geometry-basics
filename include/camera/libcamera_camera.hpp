@@ -9,6 +9,7 @@
 #include <libcamera/framebuffer_allocator.h>
 #include <libcamera/request.h>
 
+#include "camera/mapped_frame.hpp"
 #include "camera/camera.hpp"
 
 #include <condition_variable>
@@ -44,6 +45,11 @@ std::mutex mutex_;
 std::condition_variable condition_;
 
 libcamera::Request* completedRequest_{nullptr};
+MappedFrame mappedFrame_;
+
+
+std::uint32_t width_{0};
+std::uint32_t height_{0};
 
 };
 

@@ -36,6 +36,7 @@ add_library(camera
     src/camera_device.cpp
     src/rotation.cpp
     src/libcamera_camera.cpp
+    src/mapped_frame.cpp
 )
 
 target_include_directories(camera

@@ -1,6 +1,8 @@
 #include "camera/libcamera_camera.hpp"
 
 #include <iostream>
+#include <chrono>
+#include <thread>
 
 namespace camera
 {
@@ -54,6 +56,9 @@ if (camera_->configure(configuration_.get()))
     return false;
 
 const auto& cfg = configuration_->at(0);
+
+width_ = cfg.size.width;
+height_ = cfg.size.height;
 
 std::cout
     << "Stream configuration:\n"
@@ -118,15 +123,34 @@ for (auto& request : requests_)
 }
 
 std::cout << "Requests queued\n";
+std::this_thread::sleep_for(std::chrono::seconds(3));
 
     opened_ = true;
 
     return true;
 }
 
-bool LibcameraCamera::read(cv::Mat&)
+bool LibcameraCamera::read(cv::Mat& frame)
 {
-    return opened_;
+    std::unique_lock<std::mutex> lock(mutex_);
+
+    condition_.wait(
+        lock,
+        [this]
+        {
+            return completedRequest_ != nullptr;
+        });
+
+    frame = cv::Mat(
+        static_cast<int>(height_),
+        static_cast<int>(width_),
+        CV_8UC4,
+        mappedFrame_.data());
+
+    completedRequest_ = nullptr;
+
+    return true;
+
 }
 
 void LibcameraCamera::close()
@@ -151,7 +175,7 @@ void LibcameraCamera::close()
     opened_ = false;
 }
 
-void LibcameraCamera::requestCompleted(libcamera::Request* request)
+void LibcameraCamera::requestCompleted(libcamera::Request *request)
 {
     if (request->status() == libcamera::Request::RequestCancelled)
         return;
@@ -161,9 +185,31 @@ void LibcameraCamera::requestCompleted(libcamera::Request* request)
         completedRequest_ = request;
     }
 
-    std::cout << "Frame received\n";
+    const auto &buffer = request->buffers().begin()->second;
+
+    const auto &plane = buffer->planes()[0];
+
+    if (!mappedFrame_.data())
+    {
+        if (!mappedFrame_.map(
+                plane.fd.get(),
+                plane.length))
+        {
+            std::cerr << "mmap failed\n";
+            return;
+        }
+
+        std::cout
+            << "Mapped "
+            << mappedFrame_.size()
+            << " bytes\n";
+    }
+
+    request->reuse(libcamera::Request::ReuseBuffers);
+
+    if (camera_->queueRequest(request))
+        return;
 
     condition_.notify_one();
 }
-
 }

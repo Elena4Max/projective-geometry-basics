@@ -33,9 +33,12 @@ int main()
               << frame.rows << '\n';
 
     if (!frame.empty())
-    {
-        cv::imwrite("frame.png", frame);
-    }
+{
+    if (cv::imwrite("frame.png", frame))
+        std::cout << "Saved frame.png\n";
+    else
+        std::cout << "Failed to save frame\n";
+}
 
     camera.close();
 
