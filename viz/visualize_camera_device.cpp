@@ -14,6 +14,17 @@ int main()
         return -1;
     }
 
+
+    cv::Mat frame;
+
+    if (!camera.read(frame))
+    {
+        std::cout << "Read failed\n";
+        return -1;
+    }
+
+    std::cout << "Request completed\n";
+
     std::cout << "Camera initialized successfully\n";
 
     return 0;
