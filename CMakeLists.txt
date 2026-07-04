@@ -4,10 +4,10 @@ project(ProjectiveGeometry)
 
 include(CTest)
 
+option(BUILD_RASPBERRY_CAMERA "Build Raspberry Pi camera support" OFF)
+
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBCAMERA REQUIRED IMPORTED_TARGET libcamera)
 
 add_library(geometry
     src/operations.cpp
@@ -31,25 +31,29 @@ target_link_libraries(
     PUBLIC Eigen3::Eigen
 )
 
-add_library(camera
+set(CAMERA_SOURCES
     src/camera_projection.cpp
     src/camera_device.cpp
     src/rotation.cpp
-    src/libcamera_camera.cpp
-    src/mapped_frame.cpp
 )
+
+if(BUILD_RASPBERRY_CAMERA)
+
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(LIBCAMERA REQUIRED IMPORTED_TARGET libcamera)
+
+    list(APPEND CAMERA_SOURCES
+        src/libcamera_camera.cpp
+        src/mapped_frame.cpp
+    )
+
+endif()
+
+add_library(camera ${CAMERA_SOURCES})
 
 target_include_directories(camera
     PUBLIC
         include
-)
-
-target_link_libraries(camera
-    PUBLIC
-        geometry
-        ${OpenCV_LIBS}
-    PRIVATE
-        PkgConfig::LIBCAMERA
 )
 
 target_compile_features(
@@ -57,20 +61,43 @@ target_compile_features(
     PUBLIC cxx_std_20
 )
 
+target_link_libraries(
+    camera
+    PUBLIC
+        geometry
+        ${OpenCV_LIBS}
+)
+
+if(BUILD_RASPBERRY_CAMERA)
+
+    target_link_libraries(
+        camera
+        PRIVATE
+            PkgConfig::LIBCAMERA
+    )
+
+    target_compile_definitions(
+        camera
+        PUBLIC
+            HAVE_LIBCAMERA
+    )
+
+endif()
+
 add_executable(visualize
     # viz/visualize_geometry.cpp
     # viz/visualize_panorama.cpp
     # viz/visualize_camera.cpp
-    viz/visualize_camera_device.cpp
+    # viz/visualize_camera_device.cpp
+    viz/visualize_camera_calibration.cpp
 )
 
 target_link_libraries(
     visualize
     PRIVATE
-    geometry
-    camera
-    PkgConfig::LIBCAMERA
-    ${OpenCV_LIBS}
+        geometry
+        camera
+        ${OpenCV_LIBS}
 )
 
 if(BUILD_TESTING)

@@ -159,13 +159,7 @@ static double reprojectionError(const core::Mat3& H, const geometry::Point2D& p,
         return core::kInf;
     }
 
-    auto Hn = geometry::normalize(Hp);
-    auto qn = geometry::normalize(q);
-
-    double dx = Hn.x - qn.x;
-    double dy = Hn.y - qn.y;
-
-    return std::sqrt(dx * dx + dy * dy);
+    return geometry::euclideanDistance(Hp, q);
 }
 
 }  // namespace projective

@@ -16,4 +16,14 @@ Point2D normalize(const Point2D& p) noexcept {
 
 bool isAtInfinity(const Point2D& p) noexcept { return std::abs(p.z) < core::kEps; }
 
+double euclideanDistance(const Point2D& a, const Point2D& b) noexcept {
+    auto an = normalize(a);
+    auto bn = normalize(b);
+
+    const double dx = an.x - bn.x;
+    const double dy = an.y - bn.y;
+
+    return std::sqrt(dx * dx + dy * dy);
+}
+
 }  // namespace geometry

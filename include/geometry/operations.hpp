@@ -33,4 +33,14 @@ Point2D normalize(const Point2D& p) noexcept;
 /// @brief Returns true if point is at infinity (w ≈ 0).
 bool isAtInfinity(const Point2D& p) noexcept;
 
+/// Computes the Euclidean distance between two points.
+///
+/// @param a First point.
+/// @param b Second point.
+///
+/// @return Distance between the points.
+double euclideanDistance(
+    const Point2D& a,
+    const Point2D& b) noexcept;
+
 }  // namespace geometry

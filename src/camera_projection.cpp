@@ -22,4 +22,9 @@ geometry::Point2D projectPoint(const core::Vec3& X, const CameraIntrinsics& K,
     return projectPoint(Xc, K);
 }
 
+double reprojectionError(const geometry::Point2D& observed,
+                         const geometry::Point2D& projected) noexcept {
+    return geometry::euclideanDistance(observed, projected);
+}
+
 }  // namespace camera

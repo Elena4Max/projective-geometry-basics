@@ -20,4 +20,13 @@ geometry::Point2D projectPoint(const core::Vec3& X, const CameraIntrinsics& K) n
 geometry::Point2D projectPoint(const core::Vec3& X, const CameraIntrinsics& K,
                                const CameraExtrinsics& E) noexcept;
 
+/// @brief Computes the reprojection error between an observed and projected point.
+///
+/// @param observed Observed image point.
+/// @param projected Reprojected image point.
+///
+/// @return Euclidean distance between the points.
+double reprojectionError(const geometry::Point2D& observed,
+                         const geometry::Point2D& projected) noexcept;
+
 }  // namespace camera
