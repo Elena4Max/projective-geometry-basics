@@ -1,26 +1,22 @@
 #pragma once
 
-#include <memory>
-
-#include <opencv2/core.hpp>
-
 #include <libcamera/camera.h>
 #include <libcamera/camera_manager.h>
 #include <libcamera/framebuffer_allocator.h>
 #include <libcamera/request.h>
 
-#include "camera/mapped_frame.hpp"
-#include "camera/camera.hpp"
-
 #include <condition_variable>
+#include <memory>
 #include <mutex>
+#include <opencv2/core.hpp>
 
-namespace camera
-{
+#include "camera/camera.hpp"
+#include "camera/mapped_frame.hpp"
 
-class LibcameraCamera final : public Camera
-{
-public:
+namespace camera {
+
+class LibcameraCamera final : public Camera {
+   public:
     explicit LibcameraCamera(int cameraId = 0);
     ~LibcameraCamera() override;
 
@@ -28,7 +24,7 @@ public:
     std::optional<Frame> nextFrame() override;
     void close() override;
 
-private:
+   private:
     int cameraId_;
 
     bool opened_{false};
@@ -39,18 +35,16 @@ private:
     std::unique_ptr<libcamera::FrameBufferAllocator> allocator_;
     std::vector<std::unique_ptr<libcamera::Request>> requests_;
 
-void requestCompleted(libcamera::Request* request);
+    void requestCompleted(libcamera::Request* request);
 
-std::mutex mutex_;
-std::condition_variable condition_;
+    std::mutex mutex_;
+    std::condition_variable condition_;
 
-libcamera::Request* completedRequest_{nullptr};
-MappedFrame mappedFrame_;
+    libcamera::Request* completedRequest_{nullptr};
+    MappedFrame mappedFrame_;
 
-
-std::uint32_t width_{0};
-std::uint32_t height_{0};
-
+    std::uint32_t width_{0};
+    std::uint32_t height_{0};
 };
 
-}
+}  // namespace camera

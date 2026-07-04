@@ -2,12 +2,10 @@
 
 #include <cstddef>
 
-namespace camera
-{
+namespace camera {
 
-class MappedFrame
-{
-public:
+class MappedFrame {
+   public:
     MappedFrame() = default;
 
     ~MappedFrame();
@@ -22,16 +20,14 @@ public:
 
     void unmap();
 
-    [[nodiscard]]
-    unsigned char* data() const noexcept;
+    [[nodiscard]] unsigned char* data() const noexcept;
 
-    [[nodiscard]]
-    std::size_t size() const noexcept;
+    [[nodiscard]] std::size_t size() const noexcept;
 
-private:
+   private:
     unsigned char* data_{nullptr};
 
     std::size_t size_{0};
 };
 
-}
+}  // namespace camera

@@ -10,4 +10,4 @@ struct DistortionCoefficients {
     double k3{0.0};
 };
 
-} // namespace camera
+}  // namespace camera

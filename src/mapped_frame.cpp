@@ -2,16 +2,11 @@
 
 #include <sys/mman.h>
 
-namespace camera
-{
+namespace camera {
 
-MappedFrame::~MappedFrame()
-{
-    unmap();
-}
+MappedFrame::~MappedFrame() { unmap(); }
 
-MappedFrame::MappedFrame(MappedFrame&& other) noexcept
-{
+MappedFrame::MappedFrame(MappedFrame&& other) noexcept {
     data_ = other.data_;
     size_ = other.size_;
 
@@ -19,11 +14,8 @@ MappedFrame::MappedFrame(MappedFrame&& other) noexcept
     other.size_ = 0;
 }
 
-MappedFrame&
-MappedFrame::operator=(MappedFrame&& other) noexcept
-{
-    if (this == &other)
-        return *this;
+MappedFrame& MappedFrame::operator=(MappedFrame&& other) noexcept {
+    if (this == &other) return *this;
 
     unmap();
 
@@ -36,20 +28,12 @@ MappedFrame::operator=(MappedFrame&& other) noexcept
     return *this;
 }
 
-bool MappedFrame::map(int fd, std::size_t length)
-{
+bool MappedFrame::map(int fd, std::size_t length) {
     unmap();
 
-    void* memory =
-        mmap(nullptr,
-             length,
-             PROT_READ,
-             MAP_SHARED,
-             fd,
-             0);
+    void* memory = mmap(nullptr, length, PROT_READ, MAP_SHARED, fd, 0);
 
-    if (memory == MAP_FAILED)
-        return false;
+    if (memory == MAP_FAILED) return false;
 
     data_ = static_cast<unsigned char*>(memory);
     size_ = length;
@@ -57,10 +41,8 @@ bool MappedFrame::map(int fd, std::size_t length)
     return true;
 }
 
-void MappedFrame::unmap()
-{
-    if (!data_)
-        return;
+void MappedFrame::unmap() {
+    if (!data_) return;
 
     munmap(data_, size_);
 
@@ -68,16 +50,8 @@ void MappedFrame::unmap()
     size_ = 0;
 }
 
-unsigned char*
-MappedFrame::data() const noexcept
-{
-    return data_;
-}
+unsigned char* MappedFrame::data() const noexcept { return data_; }
 
-std::size_t
-MappedFrame::size() const noexcept
-{
-    return size_;
-}
+std::size_t MappedFrame::size() const noexcept { return size_; }
 
-}
+}  // namespace camera

@@ -1,14 +1,13 @@
 #pragma once
 
 #include <optional>
+
 #include "camera/frame.hpp"
 
-namespace camera
-{
+namespace camera {
 
-class Camera
-{
-public:
+class Camera {
+   public:
     virtual ~Camera() = default;
 
     virtual bool open() = 0;
@@ -18,4 +17,4 @@ public:
     virtual void close() = 0;
 };
 
-}
+}  // namespace camera

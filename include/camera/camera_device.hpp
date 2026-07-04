@@ -4,12 +4,10 @@
 
 #include "camera/camera.hpp"
 
-namespace camera
-{
+namespace camera {
 
-class CameraDevice
-{
-public:
+class CameraDevice {
+   public:
     explicit CameraDevice(std::unique_ptr<Camera> camera);
 
     bool open();
@@ -18,8 +16,8 @@ public:
 
     void close();
 
-private:
+   private:
     std::unique_ptr<Camera> camera_;
 };
 
-}
+}  // namespace camera

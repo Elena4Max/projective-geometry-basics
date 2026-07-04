@@ -1,27 +1,13 @@
 #include "camera/camera_device.hpp"
 
-namespace camera
-{
+namespace camera {
 
-CameraDevice::CameraDevice(std::unique_ptr<Camera> camera)
-    : camera_(std::move(camera))
-{
-}
+CameraDevice::CameraDevice(std::unique_ptr<Camera> camera) : camera_(std::move(camera)) {}
 
-bool CameraDevice::open()
-{
-    return camera_->open();
-}
+bool CameraDevice::open() { return camera_->open(); }
 
-std::optional<Frame>
-CameraDevice::nextFrame()
-{
-    return camera_->nextFrame();
-}
+std::optional<Frame> CameraDevice::nextFrame() { return camera_->nextFrame(); }
 
-void CameraDevice::close()
-{
-    camera_->close();
-}
+void CameraDevice::close() { camera_->close(); }
 
-}
+}  // namespace camera

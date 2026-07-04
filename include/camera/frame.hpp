@@ -2,21 +2,13 @@
 
 #include <cstdint>
 #include <filesystem>
-
 #include <opencv2/core/mat.hpp>
 
-namespace camera
-{
+namespace camera {
 
-enum class CameraId
-{
-    Left,
-    Right,
-    Unknown
-};
+enum class CameraId { Left, Right, Unknown };
 
-struct Frame
-{
+struct Frame {
     cv::Mat image;
 
     uint64_t timestamp = 0;
@@ -28,4 +20,4 @@ struct Frame
     std::filesystem::path source;
 };
 
-}
+}  // namespace camera

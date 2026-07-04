@@ -39,8 +39,6 @@ bool isAtInfinity(const Point2D& p) noexcept;
 /// @param b Second point.
 ///
 /// @return Distance between the points.
-double euclideanDistance(
-    const Point2D& a,
-    const Point2D& b) noexcept;
+double euclideanDistance(const Point2D& a, const Point2D& b) noexcept;
 
 }  // namespace geometry

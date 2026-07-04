@@ -1,23 +1,20 @@
 #pragma once
 
-#include "camera/frame.hpp"
-
 #include <filesystem>
 #include <optional>
 #include <vector>
 
-namespace camera
-{
+#include "camera/frame.hpp"
 
-class ImageDirectory
-{
-public:
-    explicit ImageDirectory(
-        const std::filesystem::path& directory);
+namespace camera {
+
+class ImageDirectory {
+   public:
+    explicit ImageDirectory(const std::filesystem::path& directory);
 
     std::optional<Frame> nextFrame();
 
-private:
+   private:
     std::vector<std::filesystem::path> imagePaths_;
 
     std::size_t currentIndex_{0};
@@ -25,4 +22,4 @@ private:
     uint64_t sequence_{0};
 };
 
-}
+}  // namespace camera
