@@ -1,10 +1,9 @@
 #include <iostream>
+#include <memory>
 
 #include <opencv2/imgcodecs.hpp>
 
 #include "camera/camera_device.hpp"
-#include <memory>
-
 #include "camera/libcamera_camera.hpp"
 
 int main()
@@ -20,25 +19,28 @@ int main()
         return -1;
     }
 
-    cv::Mat frame;
+    auto frame = camera.nextFrame();
 
-    if (!camera.read(frame))
+    if (!frame)
     {
         std::cout << "Failed to capture frame\n";
         return -1;
     }
 
-    std::cout << "Captured frame: "
-              << frame.cols << " x "
-              << frame.rows << '\n';
+    std::cout
+        << "Captured frame: "
+        << frame->image.cols
+        << " x "
+        << frame->image.rows
+        << '\n';
 
-    if (!frame.empty())
-{
-    if (cv::imwrite("frame.png", frame))
-        std::cout << "Saved frame.png\n";
-    else
-        std::cout << "Failed to save frame\n";
-}
+    if (!frame->image.empty())
+    {
+        if (cv::imwrite("frame.png", frame->image))
+            std::cout << "Saved frame.png\n";
+        else
+            std::cout << "Failed to save frame\n";
+    }
 
     camera.close();
 

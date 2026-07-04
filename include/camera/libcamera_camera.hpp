@@ -25,7 +25,7 @@ public:
     ~LibcameraCamera() override;
 
     bool open() override;
-    bool read(cv::Mat& frame) override;
+    std::optional<Frame> nextFrame() override;
     void close() override;
 
 private:

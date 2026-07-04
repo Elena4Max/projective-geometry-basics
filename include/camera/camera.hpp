@@ -1,6 +1,7 @@
 #pragma once
 
-#include <opencv2/core.hpp>
+#include <optional>
+#include "camera/frame.hpp"
 
 namespace camera
 {
@@ -12,7 +13,7 @@ public:
 
     virtual bool open() = 0;
 
-    virtual bool read(cv::Mat& frame) = 0;
+    virtual std::optional<Frame> nextFrame() = 0;
 
     virtual void close() = 0;
 };

@@ -13,9 +13,10 @@ bool CameraDevice::open()
     return camera_->open();
 }
 
-bool CameraDevice::read(cv::Mat& frame)
+std::optional<Frame>
+CameraDevice::nextFrame()
 {
-    return camera_->read(frame);
+    return camera_->nextFrame();
 }
 
 void CameraDevice::close()

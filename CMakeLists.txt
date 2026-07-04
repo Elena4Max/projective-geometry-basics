@@ -35,6 +35,7 @@ set(CAMERA_SOURCES
     src/camera_projection.cpp
     src/camera_device.cpp
     src/rotation.cpp
+    src/image_directory.cpp
 )
 
 if(BUILD_RASPBERRY_CAMERA)

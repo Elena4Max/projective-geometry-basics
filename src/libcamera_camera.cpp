@@ -130,8 +130,10 @@ std::this_thread::sleep_for(std::chrono::seconds(3));
     return true;
 }
 
-bool LibcameraCamera::read(cv::Mat& frame)
+std::optional<Frame>
+LibcameraCamera::nextFrame()
 {
+    Frame frame;
     std::unique_lock<std::mutex> lock(mutex_);
 
     condition_.wait(
@@ -149,7 +151,7 @@ bool LibcameraCamera::read(cv::Mat& frame)
 
     completedRequest_ = nullptr;
 
-    return true;
+    return frame;
 
 }
 

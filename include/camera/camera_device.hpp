@@ -14,7 +14,7 @@ public:
 
     bool open();
 
-    bool read(cv::Mat& frame);
+    std::optional<Frame> nextFrame();
 
     void close();
 

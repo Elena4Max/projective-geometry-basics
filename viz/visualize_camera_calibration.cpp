@@ -1,6 +1,7 @@
 #include "camera/camera_extrinsics.hpp"
 #include "camera/camera_intrinsics.hpp"
 #include "camera/projection.hpp"
+#include "camera/image_directory.hpp"
 
 #include "core/mat.hpp"
 #include "core/vec.hpp"
@@ -96,69 +97,62 @@ int main(int argc, char** argv)
 
     fs::create_directories(outputDir);
 
-    for (const auto& entry :
-         fs::directory_iterator(imagesDir))
-    {
-        if (!entry.is_regular_file()) {
-            continue;
-        }
+    camera::ImageDirectory source(imagesDir);
 
-        const auto image =
-            cv::imread(entry.path().string());
+while (auto frame = source.nextFrame())
+{
+    const auto& image = frame->image;
 
-        if (image.empty()) {
-            continue;
-        }
+    imageSize = image.size();
 
-        imageSize = image.size();
+    cv::Mat gray;
 
-        cv::Mat gray;
+    cv::cvtColor(
+        image,
+        gray,
+        cv::COLOR_BGR2GRAY);
 
-        cv::cvtColor(
-            image,
+    std::vector<cv::Point2f> corners;
+
+    const bool found =
+        cv::findChessboardCornersSB(
             gray,
-            cv::COLOR_BGR2GRAY);
-
-        std::vector<cv::Point2f> corners;
-
-        const bool found =
-            cv::findChessboardCornersSB(
-                gray,
-                patternSize,
-                corners);
-
-        if (!found) {
-            std::cout
-                << "[FAILED] "
-                << entry.path().filename()
-                << '\n';
-            continue;
-        }
-
-        imagePoints.push_back(corners);
-        objectPoints.push_back(boardPoints);
-        imagePaths.push_back(entry.path());
-
-        auto vis = image.clone();
-
-        cv::drawChessboardCorners(
-            vis,
             patternSize,
-            corners,
-            true);
+            corners);
 
-        cv::imwrite(
-            (outputDir /
-             ("corners_" +
-              entry.path().filename().string()))
-                .string(),
-            vis);
-
+    if (!found)
+    {
         std::cout
-            << "[OK] "
-            << entry.path().filename()
+            << "[FAILED] "
+            << frame->source.filename()
             << '\n';
+        continue;
     }
+
+    imagePoints.push_back(corners);
+    objectPoints.push_back(boardPoints);
+    imagePaths.push_back(frame->source);
+
+    auto vis = image.clone();
+
+    cv::drawChessboardCorners(
+        vis,
+        patternSize,
+        corners,
+        true);
+
+    cv::imwrite(
+        (outputDir /
+         ("corners_" +
+          frame->source.filename().string()))
+            .string(),
+        vis);
+
+    std::cout
+        << "[OK] "
+        << frame->source.filename()
+        << '\n';
+}
 
     if (imagePoints.empty()) {
         std::cerr
