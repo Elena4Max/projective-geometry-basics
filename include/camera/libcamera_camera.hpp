@@ -25,6 +25,16 @@ class LibcameraCamera final : public Camera {
     void close() override;
 
    private:
+    bool initializeManager();
+    bool acquireCamera();
+    bool configureStream();
+    bool allocateBuffers();
+    bool createRequests();
+    bool startCamera();
+    bool queueRequests();
+
+    libcamera::Stream* stream_ = nullptr;
+
     int cameraId_;
 
     bool opened_{false};

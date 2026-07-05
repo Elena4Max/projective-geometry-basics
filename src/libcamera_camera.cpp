@@ -11,77 +11,163 @@ LibcameraCamera::LibcameraCamera(int cameraId) : cameraId_(cameraId) {}
 LibcameraCamera::~LibcameraCamera() { close(); }
 
 bool LibcameraCamera::open() {
+    if (!initializeManager()) {
+        return false;
+    }
+
+    if (!acquireCamera()) {
+        return false;
+    }
+
+    if (!configureStream()) {
+        return false;
+    }
+
+    if (!allocateBuffers()) {
+        return false;
+    }
+
+    if (!createRequests()) {
+        return false;
+    }
+
+    if (!startCamera()) {
+        return false;
+    }
+
+    if (!queueRequests()) {
+        return false;
+    }
+
+    opened_ = true;
+
+    return true;
+}
+
+bool LibcameraCamera::initializeManager() {
     manager_ = std::make_unique<libcamera::CameraManager>();
 
-    if (manager_->start()) return false;
+    if (manager_->start()) {
+        return false;
+    }
 
+    return true;
+}
+
+bool LibcameraCamera::acquireCamera() {
     const auto& cameras = manager_->cameras();
 
     std::cout << "Found cameras: " << cameras.size() << '\n';
 
-    if (cameraId_ >= static_cast<int>(cameras.size())) return false;
+    if (cameraId_ < 0 || static_cast<std::size_t>(cameraId_) >= cameras.size()) {
+        return false;
+    }
 
     camera_ = cameras[cameraId_];
 
-    if (!camera_) return false;
+    if (!camera_) {
+        return false;
+    }
 
-    if (camera_->acquire()) return false;
+    if (camera_->acquire()) {
+        return false;
+    }
 
+    return true;
+}
+
+bool LibcameraCamera::configureStream() {
     configuration_ = camera_->generateConfiguration({libcamera::StreamRole::Viewfinder});
 
-    if (!configuration_) return false;
+    if (!configuration_) {
+        return false;
+    }
 
     configuration_->validate();
 
-    if (camera_->configure(configuration_.get())) return false;
+    if (camera_->configure(configuration_.get())) {
+        return false;
+    }
 
     const auto& cfg = configuration_->at(0);
+
+    stream_ = cfg.stream();
 
     width_ = cfg.size.width;
     height_ = cfg.size.height;
 
     std::cout << "Stream configuration:\n"
-              << cfg.size.width << " x " << cfg.size.height << '\n'
+              << width_ << " x " << height_ << '\n'
               << cfg.pixelFormat.toString() << '\n';
 
+    return true;
+}
+
+bool LibcameraCamera::allocateBuffers() {
     allocator_ = std::make_unique<libcamera::FrameBufferAllocator>(camera_);
 
-    auto* stream = configuration_->at(0).stream();
+    if (allocator_->allocate(stream_) < 0) {
+        return false;
+    }
 
-    if (allocator_->allocate(stream) < 0) return false;
-
-    const auto& buffers = allocator_->buffers(stream);
+    const auto& buffers = allocator_->buffers(stream_);
 
     std::cout << "Allocated buffers: " << buffers.size() << '\n';
 
-    if (buffers.empty()) return false;
+    if (buffers.empty()) {
+        return false;
+    }
+
+    return true;
+}
+
+bool LibcameraCamera::createRequests() {
+    const auto& buffers = allocator_->buffers(stream_);
+
+    requests_.clear();
+    requests_.reserve(buffers.size());
 
     for (const auto& buffer : buffers) {
         auto request = camera_->createRequest();
 
-        if (!request) return false;
+        if (!request) {
+            return false;
+        }
 
-        if (request->addBuffer(stream, buffer.get())) return false;
+        if (request->addBuffer(stream_, buffer.get())) {
+            return false;
+        }
 
         requests_.push_back(std::move(request));
     }
 
     std::cout << "Created requests: " << requests_.size() << '\n';
 
-    if (camera_->start()) return false;
+    return true;
+}
+
+bool LibcameraCamera::startCamera() {
+    camera_->requestCompleted.connect(this, &LibcameraCamera::requestCompleted);
+
+    if (camera_->start()) {
+        return false;
+    }
 
     std::cout << "Camera started\n";
 
-    camera_->requestCompleted.connect(this, &LibcameraCamera::requestCompleted);
+    return true;
+}
 
+bool LibcameraCamera::queueRequests() {
     for (auto& request : requests_) {
-        if (camera_->queueRequest(request.get())) return false;
+        if (camera_->queueRequest(request.get())) {
+            return false;
+        }
     }
 
     std::cout << "Requests queued\n";
-    std::this_thread::sleep_for(std::chrono::seconds(3));
 
-    opened_ = true;
+    std::this_thread::sleep_for(std::chrono::seconds(3));
 
     return true;
 }
