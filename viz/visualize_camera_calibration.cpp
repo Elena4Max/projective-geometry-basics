@@ -13,6 +13,8 @@
 #include "core/vec.hpp"
 #include "geometry/types.hpp"
 
+#include "algorithms/chessboard_detector.hpp"
+
 namespace fs = std::filesystem;
 
 double projectionDifference(const core::Vec3& X, const camera::CameraIntrinsics& referenceK,
@@ -53,6 +55,8 @@ int main(int argc, char** argv) {
 
     const cv::Size patternSize(cols, rows);
 
+    algorithms::ChessboardDetector detector(patternSize);
+
     const auto boardPoints = createChessboardPoints(cols, rows, squareSize);
 
     std::vector<std::vector<cv::Point2f>> imagePoints;
@@ -74,26 +78,20 @@ int main(int argc, char** argv) {
 
         imageSize = image.size();
 
-        cv::Mat gray;
+        const auto detection = detector.detect(*frame);
 
-        cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
-
-        std::vector<cv::Point2f> corners;
-
-        const bool found = cv::findChessboardCornersSB(gray, patternSize, corners);
-
-        if (!found) {
+        if (!detection.found) {
             std::cout << "[FAILED] " << frame->source.filename() << '\n';
             continue;
         }
 
-        imagePoints.push_back(corners);
+        imagePoints.push_back(detection.corners);
         objectPoints.push_back(boardPoints);
         imagePaths.push_back(frame->source);
 
         auto vis = image.clone();
 
-        cv::drawChessboardCorners(vis, patternSize, corners, true);
+        cv::drawChessboardCorners(vis, patternSize, detection.corners, true);
 
         cv::imwrite((outputDir / ("corners_" + frame->source.filename().string())).string(), vis);
 

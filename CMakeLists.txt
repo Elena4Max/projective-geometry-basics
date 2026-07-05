@@ -85,6 +85,36 @@ if(BUILD_RASPBERRY_CAMERA)
 
 endif()
 
+add_library(algorithms
+    src/chessboard_detector.cpp
+)
+
+target_include_directories(
+    algorithms
+    PUBLIC include
+)
+
+target_compile_features(
+    algorithms
+    PUBLIC cxx_std_20
+)
+
+target_link_libraries(
+    algorithms
+    PUBLIC
+        camera
+        ${OpenCV_LIBS}
+)
+
+target_link_libraries(
+    visualize
+    PRIVATE
+        geometry
+        camera
+        algorithms
+        ${OpenCV_LIBS}
+)
+
 add_executable(visualize
     # viz/visualize_geometry.cpp
     # viz/visualize_panorama.cpp
