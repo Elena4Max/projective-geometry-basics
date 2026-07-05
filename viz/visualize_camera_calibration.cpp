@@ -14,6 +14,7 @@
 #include "geometry/types.hpp"
 
 #include "algorithms/chessboard_detector.hpp"
+#include "algorithms/frame_selector.hpp"
 
 namespace fs = std::filesystem;
 
@@ -56,6 +57,7 @@ int main(int argc, char** argv) {
     const cv::Size patternSize(cols, rows);
 
     algorithms::ChessboardDetector detector(patternSize);
+    algorithms::ChessboardDetector detector(patternSize);
 
     const auto boardPoints = createChessboardPoints(cols, rows, squareSize);
 
@@ -82,6 +84,11 @@ int main(int argc, char** argv) {
 
         if (!detection.found) {
             std::cout << "[FAILED] " << frame->source.filename() << '\n';
+            continue;
+        }
+
+        if (!selector.accept(*frame, detection))
+        {
             continue;
         }
 

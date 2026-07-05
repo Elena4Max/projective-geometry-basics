@@ -36,6 +36,7 @@ set(CAMERA_SOURCES
     src/camera_device.cpp
     src/rotation.cpp
     src/image_directory.cpp
+    src/video_source.cpp
 )
 
 if(BUILD_RASPBERRY_CAMERA)
@@ -87,6 +88,7 @@ endif()
 
 add_library(algorithms
     src/chessboard_detector.cpp
+    src/frame_selector.cpp
 )
 
 target_include_directories(
