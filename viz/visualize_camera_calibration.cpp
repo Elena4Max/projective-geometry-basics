@@ -43,7 +43,7 @@ static std::vector<cv::Point3f> createChessboardPoints(int cols, int rows, float
 
 int main(int argc, char** argv) {
     if (argc != 2) {
-        std::cerr << "Usage: ./visualize_calibration <images_dir>\n";
+        std::cerr << "Usage: ./visualize <images_dir>\n";
         return 1;
     }
 

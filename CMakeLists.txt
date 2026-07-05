@@ -106,28 +106,20 @@ target_link_libraries(
         ${OpenCV_LIBS}
 )
 
+add_executable(visualize
+    # viz/visualize_geometry.cpp
+    # viz/visualize_panorama.cpp
+    # viz/visualize_camera.cpp
+    # viz/visualize_camera_device.cpp
+     viz/visualize_camera_calibration.cpp
+)
+
 target_link_libraries(
     visualize
     PRIVATE
         geometry
         camera
         algorithms
-        ${OpenCV_LIBS}
-)
-
-add_executable(visualize
-    # viz/visualize_geometry.cpp
-    # viz/visualize_panorama.cpp
-    # viz/visualize_camera.cpp
-     viz/visualize_camera_device.cpp
-    # viz/visualize_camera_calibration.cpp
-)
-
-target_link_libraries(
-    visualize
-    PRIVATE
-        geometry
-        camera
         ${OpenCV_LIBS}
 )
 
