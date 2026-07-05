@@ -87,13 +87,19 @@ bool LibcameraCamera::open() {
 }
 
 std::optional<Frame> LibcameraCamera::nextFrame() {
-    Frame frame;
     std::unique_lock<std::mutex> lock(mutex_);
 
     condition_.wait(lock, [this] { return completedRequest_ != nullptr; });
 
-    frame =
+    Frame frame;
+
+    frame.image =
         cv::Mat(static_cast<int>(height_), static_cast<int>(width_), CV_8UC4, mappedFrame_.data());
+
+    frame.camera = cameraId_ == 0 ? CameraId::Left : CameraId::Right;
+
+    frame.timestamp = 0;
+    frame.sequence = 0;
 
     completedRequest_ = nullptr;
 

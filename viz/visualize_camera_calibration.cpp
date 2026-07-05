@@ -27,7 +27,8 @@ double projectionDifference(const core::Vec3& X, const camera::CameraIntrinsics&
 
 static std::vector<cv::Point3f> createChessboardPoints(int cols, int rows, float squareSize) {
     std::vector<cv::Point3f> points;
-    points.reserve(cols * rows);
+    points.reserve(static_cast<std::vector<cv::Point3f>::size_type>(cols) *
+                   static_cast<std::vector<cv::Point3f>::size_type>(rows));
 
     for (int y = 0; y < rows; ++y) {
         for (int x = 0; x < cols; ++x) {
@@ -154,12 +155,13 @@ int main(int argc, char** argv) {
             ++totalPoints;
         }
 
-        imageError /= projectedPoints.size();
+        imageError /= static_cast<double>(projectedPoints.size());
 
         std::cout << "Image " << i << " mean error: " << imageError << " px\n";
     }
 
-    std::cout << "\nGlobal mean reprojection error: " << totalError / totalPoints << " px\n";
+    std::cout << "\nGlobal mean reprojection error: "
+              << totalError / static_cast<double>(totalPoints) << " px\n";
 
     std::cout << "\n=================================\n"
               << "OpenCV vs Custom Projection\n"
@@ -205,13 +207,13 @@ int main(int argc, char** argv) {
             ++totalProjectionPoints;
         }
 
-        imageError /= objectPoints[i].size();
+        imageError /= static_cast<double>(objectPoints[i].size());
 
         std::cout << "Image " << i << " mean difference: " << imageError << " px\n";
     }
 
-    std::cout << "\nGlobal mean difference: " << totalProjectionError / totalProjectionPoints
-              << " px\n";
+    std::cout << "\nGlobal mean difference: "
+              << totalProjectionError / static_cast<double>(totalProjectionPoints) << " px\n";
 
     std::cout << "\n=================================\n"
               << "Sensitivity Analysis\n"

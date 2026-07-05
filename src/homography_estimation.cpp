@@ -62,13 +62,17 @@ core::Mat3 estimateHomography(
 
     auto [src, T1] = normalizePoints([&]() {
         std::vector<geometry::Point2D> v;
-        for (const auto& c : correspondences) v.push_back(c.first);
+        for (const auto& c : correspondences) {
+            v.push_back(c.first);
+        }
         return v;
     }());
 
     auto [dst, T2] = normalizePoints([&]() {
         std::vector<geometry::Point2D> v;
-        for (const auto& c : correspondences) v.push_back(c.second);
+        for (const auto& c : correspondences) {
+            v.push_back(c.second);
+        }
         return v;
     }());
 
@@ -107,7 +111,7 @@ core::Mat3 estimateHomographyRansac(
     const std::vector<std::pair<geometry::Point2D, geometry::Point2D>>& correspondences,
     double threshold, int iterations) noexcept {
     std::mt19937 rng(42);
-    std::uniform_int_distribution<int> dist(0, correspondences.size() - 1);
+    std::uniform_int_distribution<std::size_t> dist(0, correspondences.size() - 1);
 
     core::Mat3 bestH;
     size_t bestInliers = 0;
