@@ -37,8 +37,6 @@ class LibcameraCamera final : public Camera {
 
     int cameraId_;
 
-    bool opened_{false};
-
     std::unique_ptr<libcamera::CameraManager> manager_;
     std::shared_ptr<libcamera::Camera> camera_;
     std::unique_ptr<libcamera::CameraConfiguration> configuration_;

@@ -39,8 +39,6 @@ bool LibcameraCamera::open() {
         return false;
     }
 
-    opened_ = true;
-
     return true;
 }
 
@@ -205,8 +203,6 @@ void LibcameraCamera::close() {
         manager_->stop();
         manager_.reset();
     }
-
-    opened_ = false;
 }
 
 void LibcameraCamera::requestCompleted(libcamera::Request* request) {
