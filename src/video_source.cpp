@@ -1,22 +1,15 @@
 #include "camera/video_source.hpp"
 
-namespace camera
-{
+namespace camera {
 
-VideoSource::VideoSource(
-    const std::filesystem::path& path)
-    : source_(path)
-{
+VideoSource::VideoSource(const std::filesystem::path& path) : source_(path) {
     capture_.open(path.string());
 }
 
-std::optional<Frame>
-VideoSource::nextFrame()
-{
+std::optional<Frame> VideoSource::nextFrame() {
     Frame frame;
 
-    if (!capture_.read(frame.image))
-    {
+    if (!capture_.read(frame.image)) {
         return std::nullopt;
     }
 
@@ -31,4 +24,4 @@ VideoSource::nextFrame()
     return frame;
 }
 
-}
+}  // namespace camera

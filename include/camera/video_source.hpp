@@ -1,26 +1,23 @@
 #pragma once
 
 #include <filesystem>
-#include <optional>
-
 #include <opencv2/videoio.hpp>
+#include <optional>
 
 #include "camera/frame.hpp"
 
-namespace camera
-{
+namespace camera {
 
-class VideoSource
-{
-public:
+class VideoSource {
+   public:
     explicit VideoSource(const std::filesystem::path& path);
 
     std::optional<Frame> nextFrame();
 
-private:
+   private:
     cv::VideoCapture capture_;
     std::filesystem::path source_;
     std::size_t sequence_ = 0;
 };
 
-}
+}  // namespace camera

@@ -3,15 +3,11 @@
 #include "algorithms/chessboard_detector.hpp"
 #include "camera/frame.hpp"
 
-namespace algorithms
-{
+namespace algorithms {
 
-class FrameSelector
-{
-public:
-    bool accept(
-        const camera::Frame& frame,
-        const ChessboardDetection& detection) const;
+class FrameSelector {
+   public:
+    bool accept(const camera::Frame& frame, const ChessboardDetection& detection) const;
 };
 
-}
+}  // namespace algorithms

@@ -1,32 +1,26 @@
 #pragma once
 
 #include <opencv2/core.hpp>
-
 #include <vector>
 
 #include "camera/frame.hpp"
 
-namespace algorithms
-{
+namespace algorithms {
 
-struct ChessboardDetection
-{
+struct ChessboardDetection {
     bool found = false;
 
     std::vector<cv::Point2f> corners;
 };
 
-class ChessboardDetector
-{
-public:
-    explicit ChessboardDetector(
-        cv::Size patternSize);
+class ChessboardDetector {
+   public:
+    explicit ChessboardDetector(cv::Size patternSize);
 
-    ChessboardDetection detect(
-        const camera::Frame& frame) const;
+    ChessboardDetection detect(const camera::Frame& frame) const;
 
-private:
+   private:
     cv::Size patternSize_;
 };
 
-}
+}  // namespace algorithms

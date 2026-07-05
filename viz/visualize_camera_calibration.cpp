@@ -5,16 +5,16 @@
 #include <opencv2/imgproc.hpp>
 #include <vector>
 
+#include "algorithms/chessboard_detector.hpp"
+#include "algorithms/frame_selector.hpp"
 #include "camera/camera_extrinsics.hpp"
 #include "camera/camera_intrinsics.hpp"
 #include "camera/image_directory.hpp"
 #include "camera/projection.hpp"
+#include "camera/video_source.hpp"
 #include "core/mat.hpp"
 #include "core/vec.hpp"
 #include "geometry/types.hpp"
-
-#include "algorithms/chessboard_detector.hpp"
-#include "algorithms/frame_selector.hpp"
 
 namespace fs = std::filesystem;
 
@@ -43,12 +43,16 @@ static std::vector<cv::Point3f> createChessboardPoints(int cols, int rows, float
 }
 
 int main(int argc, char** argv) {
-    if (argc != 2) {
-        std::cerr << "Usage: ./visualize <images_dir>\n";
+    if (argc != 3) {
+        std::cerr << "Usage:\n"
+                  << "  ./visualize images <directory>\n"
+                  << "  ./visualize video <video>\n";
+
         return 1;
     }
 
-    const fs::path imagesDir(argv[1]);
+    const std::string mode = argv[1];
+    const fs::path input = argv[2];
 
     constexpr int cols = 6;
     constexpr int rows = 9;
@@ -57,7 +61,7 @@ int main(int argc, char** argv) {
     const cv::Size patternSize(cols, rows);
 
     algorithms::ChessboardDetector detector(patternSize);
-    algorithms::ChessboardDetector detector(patternSize);
+    algorithms::FrameSelector selector;
 
     const auto boardPoints = createChessboardPoints(cols, rows, squareSize);
 
@@ -69,40 +73,65 @@ int main(int argc, char** argv) {
 
     cv::Size imageSize;
 
-    const auto outputDir = imagesDir / "visualization";
+    const auto outputDir = input.parent_path() / "visualization";
 
     fs::create_directories(outputDir);
 
-    camera::ImageDirectory source(imagesDir);
-
-    while (auto frame = source.nextFrame()) {
-        const auto& image = frame->image;
+    auto processFrame = [&](const camera::Frame& frame) {
+        const auto& image = frame.image;
 
         imageSize = image.size();
 
-        const auto detection = detector.detect(*frame);
+        const auto detection = detector.detect(frame);
 
         if (!detection.found) {
-            std::cout << "[FAILED] " << frame->source.filename() << '\n';
-            continue;
+            std::cout << "[FAILED] " << frame.source.filename() << '\n';
+
+            return;
         }
 
-        if (!selector.accept(*frame, detection))
-        {
-            continue;
+        if (!selector.accept(frame, detection)) {
+            return;
         }
 
         imagePoints.push_back(detection.corners);
+
         objectPoints.push_back(boardPoints);
-        imagePaths.push_back(frame->source);
+
+        imagePaths.push_back(frame.source);
 
         auto vis = image.clone();
 
         cv::drawChessboardCorners(vis, patternSize, detection.corners, true);
 
-        cv::imwrite((outputDir / ("corners_" + frame->source.filename().string())).string(), vis);
+        fs::path outputName;
 
-        std::cout << "[OK] " << frame->source.filename() << '\n';
+        if (mode == "images") {
+            outputName = "corners_" + frame.source.filename().string();
+        } else {
+            outputName = "corners_" + std::to_string(frame.sequence) + ".png";
+        }
+
+        cv::imwrite((outputDir / outputName).string(), vis);
+
+        std::cout << "[OK] " << frame.source.filename() << '\n';
+    };
+
+    if (mode == "images") {
+        camera::ImageDirectory source(input);
+
+        while (auto frame = source.nextFrame()) {
+            processFrame(*frame);
+        }
+    } else if (mode == "video") {
+        camera::VideoSource source(input);
+
+        while (auto frame = source.nextFrame()) {
+            processFrame(*frame);
+        }
+    } else {
+        std::cerr << "Unknown mode\n";
+        return 1;
     }
 
     if (imagePoints.empty()) {
