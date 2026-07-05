@@ -73,7 +73,7 @@ if(BUILD_RASPBERRY_CAMERA)
 
     target_link_libraries(
         camera
-        PRIVATE
+        PUBLIC
             PkgConfig::LIBCAMERA
     )
 
