@@ -89,6 +89,7 @@ endif()
 add_library(algorithms
     src/chessboard_detector.cpp
     src/frame_selector.cpp
+    src/calibration.cpp
 )
 
 target_include_directories(

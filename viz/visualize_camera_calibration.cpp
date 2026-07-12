@@ -7,6 +7,7 @@
 
 #include "algorithms/chessboard_detector.hpp"
 #include "algorithms/frame_selector.hpp"
+#include "algorithms/calibration.hpp"
 #include "camera/camera_extrinsics.hpp"
 #include "camera/camera_intrinsics.hpp"
 #include "camera/image_directory.hpp"
@@ -15,18 +16,11 @@
 #include "core/mat.hpp"
 #include "core/vec.hpp"
 #include "geometry/types.hpp"
+#ifdef BUILD_RASPBERRY_CAMERA
+#include "camera/libcamera_camera.hpp"
+#endif
 
 namespace fs = std::filesystem;
-
-double projectionDifference(const core::Vec3& X, const camera::CameraIntrinsics& referenceK,
-                            const camera::CameraIntrinsics& perturbedK,
-                            const camera::CameraExtrinsics& E) {
-    const auto reference = camera::projectPoint(X, referenceK, E);
-
-    const auto perturbed = camera::projectPoint(X, perturbedK, E);
-
-    return geometry::euclideanDistance(reference, perturbed);
-}
 
 static std::vector<cv::Point3f> createChessboardPoints(int cols, int rows, float squareSize) {
     std::vector<cv::Point3f> points;
@@ -45,8 +39,11 @@ static std::vector<cv::Point3f> createChessboardPoints(int cols, int rows, float
 int main(int argc, char** argv) {
     if (argc != 3) {
         std::cerr << "Usage:\n"
-                  << "  ./visualize images <directory>\n"
-                  << "  ./visualize video <video>\n";
+          << "  ./visualize images <directory>\n"
+          << "  ./visualize video <video>\n";
+        #ifdef BUILD_RASPBERRY_CAMERA
+        std::cerr << "  ./visualize camera <camera-id>\n";
+        #endif
 
         return 1;
     }
@@ -61,7 +58,7 @@ int main(int argc, char** argv) {
     const cv::Size patternSize(cols, rows);
 
     algorithms::ChessboardDetector detector(patternSize);
-    algorithms::FrameSelector selector;
+    algorithms::FrameSelector selector(30);
 
     const auto boardPoints = createChessboardPoints(cols, rows, squareSize);
 
@@ -122,13 +119,40 @@ int main(int argc, char** argv) {
 
         while (auto frame = source.nextFrame()) {
             processFrame(*frame);
+
+            if (selector.finished()) {
+                break;
+            }
         }
     } else if (mode == "video") {
         camera::VideoSource source(input);
 
         while (auto frame = source.nextFrame()) {
             processFrame(*frame);
+
+            if (selector.finished()) {
+                break;
+            }
         }
+    #ifdef BUILD_RASPBERRY_CAMERA
+    } else if (mode == "camera") {
+        camera::LibcameraCamera source(std::stoi(input.string()));
+
+        if (!source.open()) {
+            std::cerr << "Failed to open camera\n";
+            return 1;
+        }
+
+        while (auto frame = source.nextFrame()) {
+            processFrame(*frame);
+
+            if (selector.finished()) {
+                break;
+            }
+        }
+
+        source.close();
+    #endif
     } else {
         std::cerr << "Unknown mode\n";
         return 1;
