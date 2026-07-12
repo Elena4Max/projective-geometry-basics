@@ -16,7 +16,7 @@
 #include "core/mat.hpp"
 #include "core/vec.hpp"
 #include "geometry/types.hpp"
-#ifdef BUILD_RASPBERRY_CAMERA
+#ifdef HAVE_LIBCAMERA
 #include "camera/libcamera_camera.hpp"
 #endif
 
@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
         std::cerr << "Usage:\n"
           << "  ./visualize images <directory>\n"
           << "  ./visualize video <video>\n";
-        #ifdef BUILD_RASPBERRY_CAMERA
+        #ifdef HAVE_LIBCAMERA
         std::cerr << "  ./visualize camera <camera-id>\n";
         #endif
 
@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
                 break;
             }
         }
-    #ifdef BUILD_RASPBERRY_CAMERA
+    #ifdef HAVE_LIBCAMERA
     } else if (mode == "camera") {
         camera::LibcameraCamera source(std::stoi(input.string()));
 
