@@ -2,14 +2,10 @@
 
 namespace algorithms {
 
-FrameSelector::FrameSelector(std::size_t frameStep,
-                             std::size_t maxFrames)
-    : frameStep(frameStep),
-      maxFrames(maxFrames) {}
+FrameSelector::FrameSelector(std::size_t frameStep, std::size_t maxFrames)
+    : frameStep(frameStep), maxFrames(maxFrames) {}
 
-bool FrameSelector::accept(const camera::Frame& frame,
-                           const ChessboardDetection&) const
-{
+bool FrameSelector::accept(const camera::Frame& frame, const ChessboardDetection&) const {
     if (acceptedFrames_ >= maxFrames) {
         return false;
     }
@@ -23,9 +19,6 @@ bool FrameSelector::accept(const camera::Frame& frame,
     return true;
 }
 
-bool FrameSelector::finished() const
-{
-    return acceptedFrames_ >= maxFrames;
-}
+bool FrameSelector::finished() const { return acceptedFrames_ >= maxFrames; }
 
 }  // namespace algorithms

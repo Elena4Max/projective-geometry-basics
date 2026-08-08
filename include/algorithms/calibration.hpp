@@ -1,14 +1,14 @@
 #pragma once
 
 #include <filesystem>
-#include <opencv2/core.hpp>
 #include <opencv2/calib3d.hpp>
-#include "camera/camera_intrinsics.hpp"
-#include "camera/camera_extrinsics.hpp"
-#include "camera/projection.hpp"
+#include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
-
 #include <vector>
+
+#include "camera/camera_extrinsics.hpp"
+#include "camera/camera_intrinsics.hpp"
+#include "camera/projection.hpp"
 
 namespace algorithms {
 

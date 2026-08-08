@@ -5,7 +5,7 @@
 namespace visualization {
 
 class StreamViewer {
-public:
+   public:
     StreamViewer();
 
     bool start(std::uint16_t port = 8080);
@@ -14,8 +14,8 @@ public:
 
     void stop();
 
-private:
+   private:
     bool running_{false};
 };
 
-} // namespace visualization
+}  // namespace visualization

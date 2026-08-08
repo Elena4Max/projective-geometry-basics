@@ -1,4 +1,5 @@
 #include "algorithms/calibration.hpp"
+
 #include <iostream>
 
 namespace algorithms {
@@ -27,8 +28,8 @@ Calibration::Calibration(const cv::Size& imageSize,
 void Calibration::calibrateCamera() {
     cameraMatrix = cv::Mat::eye(3, 3, CV_64F);
 
-    rms = cv::calibrateCamera(objectPoints, imagePoints, imageSize, cameraMatrix,
-                                           distCoeffs, rvecs, tvecs);
+    rms = cv::calibrateCamera(objectPoints, imagePoints, imageSize, cameraMatrix, distCoeffs, rvecs,
+                              tvecs);
 
     std::cout << "\n";
     std::cout << "=================================\n";

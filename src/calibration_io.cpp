@@ -4,16 +4,11 @@
 
 namespace camera {
 
-bool CalibrationIO::save(const std::filesystem::path& filename,
-                         const cv::Mat& cameraMatrix,
-                         const cv::Mat& distortion,
-                         const cv::Size& imageSize,
-                         double rms)
-{
+bool CalibrationIO::save(const std::filesystem::path& filename, const cv::Mat& cameraMatrix,
+                         const cv::Mat& distortion, const cv::Size& imageSize, double rms) {
     cv::FileStorage fs(filename.string(), cv::FileStorage::WRITE);
 
-    if (!fs.isOpened())
-        return false;
+    if (!fs.isOpened()) return false;
 
     fs << "cameramatrix" << cameraMatrix;
     fs << "distortion_coefficients" << distortion;
@@ -24,16 +19,11 @@ bool CalibrationIO::save(const std::filesystem::path& filename,
     return true;
 }
 
-bool CalibrationIO::load(const std::filesystem::path& filename,
-                         cv::Mat& cameraMatrix,
-                         cv::Mat& distortion,
-                         cv::Size& imageSize,
-                         double& rms)
-{
+bool CalibrationIO::load(const std::filesystem::path& filename, cv::Mat& cameraMatrix,
+                         cv::Mat& distortion, cv::Size& imageSize, double& rms) {
     cv::FileStorage fs(filename.string(), cv::FileStorage::READ);
 
-    if (!fs.isOpened())
-        return false;
+    if (!fs.isOpened()) return false;
 
     fs["cameramatrix"] >> cameraMatrix;
     fs["distortion_coefficients"] >> distortion;
@@ -46,4 +36,4 @@ bool CalibrationIO::load(const std::filesystem::path& filename,
     return true;
 }
 
-} // namespace camera
+}  // namespace camera

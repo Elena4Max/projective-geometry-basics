@@ -6,15 +6,14 @@
 namespace algorithms {
 
 class FrameSelector {
-public:
-    explicit FrameSelector(std::size_t frameStep = 30,
-                           std::size_t maxFrames = 20);
+   public:
+    explicit FrameSelector(std::size_t frameStep = 30, std::size_t maxFrames = 20);
 
     bool accept(const camera::Frame&, const ChessboardDetection&) const;
 
     bool finished() const;
 
-private:
+   private:
     std::size_t frameStep;
     std::size_t maxFrames;
 
