@@ -8,7 +8,9 @@ bool CalibrationIO::save(const std::filesystem::path& filename, const cv::Mat& c
                          const cv::Mat& distortion, const cv::Size& imageSize, double rms) {
     cv::FileStorage fs(filename.string(), cv::FileStorage::WRITE);
 
-    if (!fs.isOpened()) return false;
+    if (!fs.isOpened()) {
+        return false;
+    }
 
     fs << "cameramatrix" << cameraMatrix;
     fs << "distortion_coefficients" << distortion;
@@ -23,7 +25,9 @@ bool CalibrationIO::load(const std::filesystem::path& filename, cv::Mat& cameraM
                          cv::Mat& distortion, cv::Size& imageSize, double& rms) {
     cv::FileStorage fs(filename.string(), cv::FileStorage::READ);
 
-    if (!fs.isOpened()) return false;
+    if (!fs.isOpened()) {
+        return false;
+    }
 
     fs["cameramatrix"] >> cameraMatrix;
     fs["distortion_coefficients"] >> distortion;

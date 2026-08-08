@@ -30,7 +30,10 @@ static std::vector<cv::Point3f> createChessboardPoints(int cols, int rows, float
 
     for (int y = 0; y < rows; ++y) {
         for (int x = 0; x < cols; ++x) {
-            points.emplace_back(x * squareSize, y * squareSize, 0.0f);
+            points.emplace_back(
+                static_cast<float>(x) * squareSize, 
+                static_cast<float>(y) * squareSize, 
+                0.0f);
         }
     }
 

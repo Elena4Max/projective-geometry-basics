@@ -15,7 +15,7 @@ class StreamViewer {
     void stop();
 
    private:
-    bool running_{false};
+    bool running{false};
 };
 
 }  // namespace visualization

@@ -62,6 +62,7 @@ core::Mat3 estimateHomography(
 
     auto [src, T1] = normalizePoints([&]() {
         std::vector<geometry::Point2D> v;
+        v.reserve(correspondences.size());
         for (const auto& c : correspondences) {
             v.push_back(c.first);
         }
@@ -70,6 +71,7 @@ core::Mat3 estimateHomography(
 
     auto [dst, T2] = normalizePoints([&]() {
         std::vector<geometry::Point2D> v;
+        v.reserve(correspondences.size());
         for (const auto& c : correspondences) {
             v.push_back(c.second);
         }
@@ -83,6 +85,8 @@ core::Mat3 estimateHomography(
         const double y = src[i].y;
         const double xp = dst[i].x;
         const double yp = dst[i].y;
+
+        const Eigen::Index row = static_castEigen::Index(2 * i);
 
         A.row(2 * i) << -x, -y, -1, 0, 0, 0, x * xp, y * xp, xp;
         A.row(2 * i + 1) << 0, 0, 0, -x, -y, -1, x * yp, y * yp, yp;
@@ -114,29 +118,33 @@ core::Mat3 estimateHomographyRansac(
     std::uniform_int_distribution<std::size_t> dist(0, correspondences.size() - 1);
 
     core::Mat3 bestH;
-    size_t bestInliers = 0;
+    std::size_t bestInliers = 0;
 
     for (int it = 0; it < iterations; ++it) {
-        std::unordered_set<int> indices;
+        std::unordered_set<std::size_t> indices;
+
         while (indices.size() < 4) {
             indices.insert(dist(rng));
         }
 
         std::vector<std::pair<geometry::Point2D, geometry::Point2D>> sample;
-        for (int idx : indices) {
+        sample.reserve(indices.size());
+
+        for (std::size_t idx : indices) {
             sample.push_back(correspondences[idx]);
         }
 
         auto H = estimateHomography(sample);
 
-        size_t count = 0;
+        std::size_t count = 0;
         std::vector<std::pair<geometry::Point2D, geometry::Point2D>> inliers;
+        inliers.reserve(correspondences.size());
 
         for (const auto& c : correspondences) {
-            double err = reprojectionError(H, c.first, c.second);
+            const double error = reprojectionError(H, c.first, c.second);
 
-            if (err < threshold) {
-                count++;
+            if (error < threshold) {
+                ++count;
                 inliers.push_back(c);
             }
         }
