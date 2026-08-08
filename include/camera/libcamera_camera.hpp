@@ -1,7 +1,7 @@
 #pragma once
 
 #include <libcamera/camera.h>
-#include <libcamera/camera_manager.h>
+#include <libcamera/cameramanager.h>
 #include <libcamera/framebuffer_allocator.h>
 #include <libcamera/request.h>
 
@@ -35,24 +35,24 @@ class LibcameraCamera final : public Camera {
 
     libcamera::Stream* stream_ = nullptr;
 
-    int cameraId_;
+    int cameraId;
 
     std::unique_ptr<libcamera::CameraManager> manager_;
-    std::shared_ptr<libcamera::Camera> camera_;
-    std::unique_ptr<libcamera::CameraConfiguration> configuration_;
-    std::unique_ptr<libcamera::FrameBufferAllocator> allocator_;
-    std::vector<std::unique_ptr<libcamera::Request>> requests_;
+    std::shared_ptr<libcamera::Camera> camera;
+    std::unique_ptr<libcamera::CameraConfiguration> configuration;
+    std::unique_ptr<libcamera::FrameBufferAllocator> allocator;
+    std::vector<std::unique_ptr<libcamera::Request>> requests;
 
     void requestCompleted(libcamera::Request* request);
 
-    std::mutex mutex_;
-    std::condition_variable condition_;
+    std::mutex mutex;
+    std::condition_variable condition;
 
-    libcamera::Request* completedRequest_{nullptr};
-    MappedFrame mappedFrame_;
+    libcamera::Request* completedRequest{nullptr};
+    MappedFrame mappedFrame;
 
-    std::uint32_t width_{0};
-    std::uint32_t height_{0};
+    std::uint32_t width{0};
+    std::uint32_t height{0};
 };
 
 }  // namespace camera

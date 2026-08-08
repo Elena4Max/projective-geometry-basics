@@ -15,8 +15,8 @@ public:
     bool finished() const;
 
 private:
-    std::size_t frameStep_;
-    std::size_t maxFrames_;
+    std::size_t frameStep;
+    std::size_t maxFrames;
 
     mutable std::size_t acceptedFrames_ = 0;
 };

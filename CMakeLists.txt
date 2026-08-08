@@ -37,6 +37,7 @@ set(CAMERA_SOURCES
     src/rotation.cpp
     src/image_directory.cpp
     src/video_source.cpp
+    src/calibration_io.cpp
 )
 
 if(BUILD_RASPBERRY_CAMERA)
@@ -109,6 +110,26 @@ target_link_libraries(
         ${OpenCV_LIBS}
 )
 
+add_library(visualization
+    src/stream_viewer.cpp
+)
+
+target_include_directories(
+    visualization
+    PUBLIC include
+)
+
+target_compile_features(
+    visualization
+    PUBLIC cxx_std_20
+)
+
+target_link_libraries(
+    visualization
+    PUBLIC
+        ${OpenCV_LIBS}
+)
+
 add_executable(visualize
     # viz/visualize_geometry.cpp
     # viz/visualize_panorama.cpp
@@ -123,6 +144,7 @@ target_link_libraries(
         geometry
         camera
         algorithms
+        visualization
         ${OpenCV_LIBS}
 )
 

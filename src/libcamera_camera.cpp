@@ -6,7 +6,7 @@
 
 namespace camera {
 
-LibcameraCamera::LibcameraCamera(int cameraId) : cameraId_(cameraId) {}
+LibcameraCamera::LibcameraCamera(int cameraId) : cameraId(cameraId) {}
 
 LibcameraCamera::~LibcameraCamera() { close(); }
 
@@ -57,17 +57,17 @@ bool LibcameraCamera::acquireCamera() {
 
     std::cout << "Found cameras: " << cameras.size() << '\n';
 
-    if (cameraId_ < 0 || static_cast<std::size_t>(cameraId_) >= cameras.size()) {
+    if (cameraId < 0 || static_cast<std::size_t>(cameraId) >= cameras.size()) {
         return false;
     }
 
-    camera_ = cameras[cameraId_];
+    camera = cameras[cameraId];
 
-    if (!camera_) {
+    if (!camera) {
         return false;
     }
 
-    if (camera_->acquire()) {
+    if (camera->acquire()) {
         return false;
     }
 
@@ -75,40 +75,40 @@ bool LibcameraCamera::acquireCamera() {
 }
 
 bool LibcameraCamera::configureStream() {
-    configuration_ = camera_->generateConfiguration({libcamera::StreamRole::Viewfinder});
+    configuration = camera->generateConfiguration({libcamera::StreamRole::Viewfinder});
 
-    if (!configuration_) {
+    if (!configuration) {
         return false;
     }
 
-    configuration_->validate();
+    configuration->validate();
 
-    if (camera_->configure(configuration_.get())) {
+    if (camera->configure(configuration.get())) {
         return false;
     }
 
-    const auto& cfg = configuration_->at(0);
+    const auto& cfg = configuration->at(0);
 
     stream_ = cfg.stream();
 
-    width_ = cfg.size.width;
-    height_ = cfg.size.height;
+    width = cfg.size.width;
+    height = cfg.size.height;
 
     std::cout << "Stream configuration:\n"
-              << width_ << " x " << height_ << '\n'
+              << width << " x " << height << '\n'
               << cfg.pixelFormat.toString() << '\n';
 
     return true;
 }
 
 bool LibcameraCamera::allocateBuffers() {
-    allocator_ = std::make_unique<libcamera::FrameBufferAllocator>(camera_);
+    allocator = std::make_unique<libcamera::FrameBufferAllocator>(camera);
 
-    if (allocator_->allocate(stream_) < 0) {
+    if (allocator->allocate(stream_) < 0) {
         return false;
     }
 
-    const auto& buffers = allocator_->buffers(stream_);
+    const auto& buffers = allocator->buffers(stream_);
 
     std::cout << "Allocated buffers: " << buffers.size() << '\n';
 
@@ -120,13 +120,13 @@ bool LibcameraCamera::allocateBuffers() {
 }
 
 bool LibcameraCamera::createRequests() {
-    const auto& buffers = allocator_->buffers(stream_);
+    const auto& buffers = allocator->buffers(stream_);
 
-    requests_.clear();
-    requests_.reserve(buffers.size());
+    requests.clear();
+    requests.reserve(buffers.size());
 
     for (const auto& buffer : buffers) {
-        auto request = camera_->createRequest();
+        auto request = camera->createRequest();
 
         if (!request) {
             return false;
@@ -136,18 +136,18 @@ bool LibcameraCamera::createRequests() {
             return false;
         }
 
-        requests_.push_back(std::move(request));
+        requests.push_back(std::move(request));
     }
 
-    std::cout << "Created requests: " << requests_.size() << '\n';
+    std::cout << "Created requests: " << requests.size() << '\n';
 
     return true;
 }
 
 bool LibcameraCamera::startCamera() {
-    camera_->requestCompleted.connect(this, &LibcameraCamera::requestCompleted);
+    camera->requestCompleted.connect(this, &LibcameraCamera::requestCompleted);
 
-    if (camera_->start()) {
+    if (camera->start()) {
         return false;
     }
 
@@ -157,8 +157,8 @@ bool LibcameraCamera::startCamera() {
 }
 
 bool LibcameraCamera::queueRequests() {
-    for (auto& request : requests_) {
-        if (camera_->queueRequest(request.get())) {
+    for (auto& request : requests) {
+        if (camera->queueRequest(request.get())) {
             return false;
         }
     }
@@ -169,34 +169,34 @@ bool LibcameraCamera::queueRequests() {
 }
 
 std::optional<Frame> LibcameraCamera::nextFrame() {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::unique_lock<std::mutex> lock(mutex);
 
-    condition_.wait(lock, [this] { return completedRequest_ != nullptr; });
+    condition.wait(lock, [this] { return completedRequest != nullptr; });
 
     Frame frame;
 
     frame.image =
-        cv::Mat(static_cast<int>(height_), static_cast<int>(width_), CV_8UC4, mappedFrame_.data());
+        cv::Mat(static_cast<int>(height), static_cast<int>(width), CV_8UC4, mappedFrame.data());
 
-    frame.camera = cameraId_ == 0 ? CameraId::Left : CameraId::Right;
+    frame.camera = cameraId == 0 ? CameraId::Left : CameraId::Right;
 
     frame.timestamp = 0;
     frame.sequence = 0;
 
-    completedRequest_ = nullptr;
+    completedRequest = nullptr;
 
     return frame;
 }
 
 void LibcameraCamera::close() {
-    if (camera_) {
-        camera_->stop();
+    if (camera) {
+        camera->stop();
 
-        requests_.clear();
-        allocator_.reset();
+        requests.clear();
+        allocator.reset();
 
-        camera_->release();
-        camera_.reset();
+        camera->release();
+        camera.reset();
     }
 
     if (manager_) {
@@ -209,27 +209,27 @@ void LibcameraCamera::requestCompleted(libcamera::Request* request) {
     if (request->status() == libcamera::Request::RequestCancelled) return;
 
     {
-        std::lock_guard<std::mutex> lock(mutex_);
-        completedRequest_ = request;
+        std::lock_guard<std::mutex> lock(mutex);
+        completedRequest = request;
     }
 
     const auto& buffer = request->buffers().begin()->second;
 
     const auto& plane = buffer->planes()[0];
 
-    if (!mappedFrame_.data()) {
-        if (!mappedFrame_.map(plane.fd.get(), plane.length)) {
+    if (!mappedFrame.data()) {
+        if (!mappedFrame.map(plane.fd.get(), plane.length)) {
             std::cerr << "mmap failed\n";
             return;
         }
 
-        std::cout << "Mapped " << mappedFrame_.size() << " bytes\n";
+        std::cout << "Mapped " << mappedFrame.size() << " bytes\n";
     }
 
     request->reuse(libcamera::Request::ReuseBuffers);
 
-    if (camera_->queueRequest(request)) return;
+    if (camera->queueRequest(request)) return;
 
-    condition_.notify_one();
+    condition.notify_one();
 }
 }  // namespace camera

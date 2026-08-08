@@ -16,6 +16,7 @@
 #include "core/mat.hpp"
 #include "core/vec.hpp"
 #include "geometry/types.hpp"
+#include "visualization/stream_viewer.hpp"
 #ifdef HAVE_LIBCAMERA
 #include "camera/libcamera_camera.hpp"
 #endif
@@ -59,6 +60,9 @@ int main(int argc, char** argv) {
 
     algorithms::ChessboardDetector detector(patternSize);
     algorithms::FrameSelector selector(30);
+    visualization::StreamViewer viewer;
+
+    viewer.start();
 
     const auto boardPoints = createChessboardPoints(cols, rows, squareSize);
 
@@ -170,7 +174,8 @@ int main(int argc, char** argv) {
     calibration.validateReprojection();
     calibration.compareProjection();
     calibration.sensitivityAnalysis();
-    calibration.saveVisualization();
+
+    viewer.stop();
 
     return 0;
 }

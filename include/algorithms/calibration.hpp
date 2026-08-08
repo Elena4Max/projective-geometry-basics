@@ -27,26 +27,26 @@ class Calibration {
 
     void sensitivityAnalysis() const;
 
-    void saveVisualization() const;
-
    private:
-    cv::Size imageSize_;
+    cv::Size imageSize;
 
-    const std::vector<std::vector<cv::Point2f>>& imagePoints_;
+    const std::vector<std::vector<cv::Point2f>>& imagePoints;
 
-    const std::vector<std::vector<cv::Point3f>>& objectPoints_;
+    const std::vector<std::vector<cv::Point3f>>& objectPoints;
 
-    const std::vector<std::filesystem::path>& imagePaths_;
+    const std::vector<std::filesystem::path>& imagePaths;
 
-    std::filesystem::path outputDir_;
+    std::filesystem::path outputDir;
 
-    cv::Mat cameraMatrix_;
+    cv::Mat cameraMatrix;
 
-    cv::Mat distCoeffs_;
+    cv::Mat distCoeffs;
 
-    std::vector<cv::Mat> rvecs_;
+    std::vector<cv::Mat> rvecs;
 
-    std::vector<cv::Mat> tvecs_;
+    std::vector<cv::Mat> tvecs;
+
+    double rms{0.0};
 };
 
 }  // namespace algorithms

@@ -5,7 +5,7 @@
 
 namespace algorithms {
 
-ChessboardDetector::ChessboardDetector(cv::Size patternSize) : patternSize_(patternSize) {}
+ChessboardDetector::ChessboardDetector(cv::Size patternSize) : patternSize(patternSize) {}
 
 ChessboardDetection ChessboardDetector::detect(const camera::Frame& frame) const {
     cv::Mat gray;
@@ -14,7 +14,7 @@ ChessboardDetection ChessboardDetector::detect(const camera::Frame& frame) const
 
     ChessboardDetection detection;
 
-    detection.found = cv::findChessboardCornersSB(gray, patternSize_, detection.corners);
+    detection.found = cv::findChessboardCornersSB(gray, patternSize, detection.corners);
 
     return detection;
 }

@@ -20,7 +20,7 @@ class ChessboardDetector {
     ChessboardDetection detect(const camera::Frame& frame) const;
 
    private:
-    cv::Size patternSize_;
+    cv::Size patternSize;
 };
 
 }  // namespace algorithms

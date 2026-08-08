@@ -13,15 +13,15 @@ ImageDirectory::ImageDirectory(const fs::path& directory) {
             continue;
         }
 
-        imagePaths_.push_back(entry.path());
+        imagePaths.push_back(entry.path());
     }
 
-    std::sort(imagePaths_.begin(), imagePaths_.end());
+    std::sort(imagePaths.begin(), imagePaths.end());
 }
 
 std::optional<Frame> ImageDirectory::nextFrame() {
-    while (currentIndex_ < imagePaths_.size()) {
-        const auto& path = imagePaths_[currentIndex_++];
+    while (currentIndex_ < imagePaths.size()) {
+        const auto& path = imagePaths[currentIndex_++];
 
         cv::Mat image = cv::imread(path.string());
 

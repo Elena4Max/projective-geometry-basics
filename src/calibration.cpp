@@ -18,30 +18,30 @@ Calibration::Calibration(const cv::Size& imageSize,
                          const std::vector<std::vector<cv::Point3f>>& objectPoints,
                          const std::vector<std::filesystem::path>& imagePaths,
                          const std::filesystem::path& outputDir)
-    : imageSize_(imageSize),
-      imagePoints_(imagePoints),
-      objectPoints_(objectPoints),
-      imagePaths_(imagePaths),
-      outputDir_(outputDir) {}
+    : imageSize(imageSize),
+      imagePoints(imagePoints),
+      objectPoints(objectPoints),
+      imagePaths(imagePaths),
+      outputDir(outputDir) {}
 
 void Calibration::calibrateCamera() {
-    cameraMatrix_ = cv::Mat::eye(3, 3, CV_64F);
+    cameraMatrix = cv::Mat::eye(3, 3, CV_64F);
 
-    const double rms = cv::calibrateCamera(objectPoints_, imagePoints_, imageSize_, cameraMatrix_,
-                                           distCoeffs_, rvecs_, tvecs_);
+    rms = cv::calibrateCamera(objectPoints, imagePoints, imageSize, cameraMatrix,
+                                           distCoeffs, rvecs, tvecs);
 
     std::cout << "\n";
     std::cout << "=================================\n";
     std::cout << "Calibration Results\n";
     std::cout << "=================================\n";
 
-    std::cout << "Valid images: " << imagePoints_.size() << '\n';
+    std::cout << "Valid images: " << imagePoints.size() << '\n';
 
     std::cout << "RMS reprojection error: " << rms << '\n';
 
-    std::cout << "\nCamera Matrix K:\n" << cameraMatrix_ << '\n';
+    std::cout << "\nCamera Matrix K:\n" << cameraMatrix << '\n';
 
-    std::cout << "\nDistortion Coefficients:\n" << distCoeffs_ << '\n';
+    std::cout << "\nDistortion Coefficients:\n" << distCoeffs << '\n';
 }
 
 void Calibration::validateReprojection() const {
@@ -52,18 +52,18 @@ void Calibration::validateReprojection() const {
     double totalError = 0.0;
     std::size_t totalPoints = 0;
 
-    for (std::size_t i = 0; i < objectPoints_.size(); ++i) {
+    for (std::size_t i = 0; i < objectPoints.size(); ++i) {
         std::vector<cv::Point2f> projectedPoints;
 
-        cv::projectPoints(objectPoints_[i], rvecs_[i], tvecs_[i], cameraMatrix_, distCoeffs_,
+        cv::projectPoints(objectPoints[i], rvecs[i], tvecs[i], cameraMatrix, distCoeffs,
                           projectedPoints);
 
         double imageError = 0.0;
 
         for (std::size_t j = 0; j < projectedPoints.size(); ++j) {
-            const double dx = projectedPoints[j].x - imagePoints_[i][j].x;
+            const double dx = projectedPoints[j].x - imagePoints[i][j].x;
 
-            const double dy = projectedPoints[j].y - imagePoints_[i][j].y;
+            const double dy = projectedPoints[j].y - imagePoints[i][j].y;
 
             const double error = std::sqrt(dx * dx + dy * dy);
 
@@ -89,29 +89,29 @@ void Calibration::compareProjection() const {
     double totalProjectionError = 0.0;
     std::size_t totalProjectionPoints = 0;
 
-    for (std::size_t i = 0; i < objectPoints_.size(); ++i) {
+    for (std::size_t i = 0; i < objectPoints.size(); ++i) {
         std::vector<cv::Point2f> cvProjectedPoints;
 
-        cv::projectPoints(objectPoints_[i], rvecs_[i], tvecs_[i], cameraMatrix_, cv::Mat(),
+        cv::projectPoints(objectPoints[i], rvecs[i], tvecs[i], cameraMatrix, cv::Mat(),
                           cvProjectedPoints);
 
         cv::Mat cvR;
 
-        cv::Rodrigues(rvecs_[i], cvR);
+        cv::Rodrigues(rvecs[i], cvR);
 
-        camera::CameraIntrinsics K{cameraMatrix_.at<double>(0, 0), cameraMatrix_.at<double>(1, 1),
-                                   cameraMatrix_.at<double>(0, 2), cameraMatrix_.at<double>(1, 2)};
+        camera::CameraIntrinsics K{cameraMatrix.at<double>(0, 0), cameraMatrix.at<double>(1, 1),
+                                   cameraMatrix.at<double>(0, 2), cameraMatrix.at<double>(1, 2)};
 
         camera::CameraExtrinsics E{
             core::Mat3{cvR.at<double>(0, 0), cvR.at<double>(0, 1), cvR.at<double>(0, 2),
                        cvR.at<double>(1, 0), cvR.at<double>(1, 1), cvR.at<double>(1, 2),
                        cvR.at<double>(2, 0), cvR.at<double>(2, 1), cvR.at<double>(2, 2)},
-            core::Vec3{tvecs_[i].at<double>(0), tvecs_[i].at<double>(1), tvecs_[i].at<double>(2)}};
+            core::Vec3{tvecs[i].at<double>(0), tvecs[i].at<double>(1), tvecs[i].at<double>(2)}};
 
         double imageError = 0.0;
 
-        for (std::size_t j = 0; j < objectPoints_[i].size(); ++j) {
-            const auto& p = objectPoints_[i][j];
+        for (std::size_t j = 0; j < objectPoints[i].size(); ++j) {
+            const auto& p = objectPoints[i][j];
 
             const core::Vec3 X{p.x, p.y, p.z};
 
@@ -126,7 +126,7 @@ void Calibration::compareProjection() const {
             ++totalProjectionPoints;
         }
 
-        imageError /= static_cast<double>(objectPoints_[i].size());
+        imageError /= static_cast<double>(objectPoints[i].size());
 
         std::cout << "Image " << i << " mean difference: " << imageError << " px\n";
     }
@@ -142,17 +142,17 @@ void Calibration::sensitivityAnalysis() const {
 
     cv::Mat cvR;
 
-    cv::Rodrigues(rvecs_.front(), cvR);
+    cv::Rodrigues(rvecs.front(), cvR);
 
-    camera::CameraIntrinsics K{cameraMatrix_.at<double>(0, 0), cameraMatrix_.at<double>(1, 1),
-                               cameraMatrix_.at<double>(0, 2), cameraMatrix_.at<double>(1, 2)};
+    camera::CameraIntrinsics K{cameraMatrix.at<double>(0, 0), cameraMatrix.at<double>(1, 1),
+                               cameraMatrix.at<double>(0, 2), cameraMatrix.at<double>(1, 2)};
 
     camera::CameraExtrinsics E{
         core::Mat3{cvR.at<double>(0, 0), cvR.at<double>(0, 1), cvR.at<double>(0, 2),
                    cvR.at<double>(1, 0), cvR.at<double>(1, 1), cvR.at<double>(1, 2),
                    cvR.at<double>(2, 0), cvR.at<double>(2, 1), cvR.at<double>(2, 2)},
-        core::Vec3{tvecs_.front().at<double>(0), tvecs_.front().at<double>(1),
-                   tvecs_.front().at<double>(2)}};
+        core::Vec3{tvecs.front().at<double>(0), tvecs.front().at<double>(1),
+                   tvecs.front().at<double>(2)}};
 
     auto meanError = [&](auto perturb) {
         double totalError = 0.0;
@@ -162,7 +162,7 @@ void Calibration::sensitivityAnalysis() const {
 
         perturb(modifiedK);
 
-        for (const auto& p : objectPoints_.front()) {
+        for (const auto& p : objectPoints.front()) {
             const core::Vec3 X{p.x, p.y, p.z};
 
             totalError += projectionDifference(X, K, modifiedK, E);
@@ -186,32 +186,6 @@ void Calibration::sensitivityAnalysis() const {
     std::cout << "cx +5 px\t" << meanError([](auto& K) { K.cx += 5.0; }) << '\n';
 
     std::cout << "cx +20 px\t" << meanError([](auto& K) { K.cx += 20.0; }) << '\n';
-}
-
-void Calibration::saveVisualization() const {
-    const auto image = cv::imread(imagePaths_.front().string());
-
-    if (image.empty()) {
-        std::cout << "Skipping reprojection visualization: source image is unavailable.\n";
-        return;
-    }
-
-    std::vector<cv::Point2f> projectedPoints;
-
-    cv::projectPoints(objectPoints_.front(), rvecs_.front(), tvecs_.front(), cameraMatrix_, distCoeffs_,
-                      projectedPoints);
-
-    auto vis = image.clone();
-
-    for (const auto& p : imagePoints_.front()) {
-        cv::circle(vis, p, 5, cv::Scalar(0, 255, 0), -1);
-    }
-
-    for (const auto& p : projectedPoints) {
-        cv::circle(vis, p, 3, cv::Scalar(0, 0, 255), -1);
-    }
-
-    cv::imwrite((outputDir_ / "reprojection_validation.png").string(), vis);
 }
 
 }  // namespace algorithms

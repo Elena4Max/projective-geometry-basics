@@ -15,7 +15,7 @@ class ImageDirectory {
     std::optional<Frame> nextFrame();
 
    private:
-    std::vector<std::filesystem::path> imagePaths_;
+    std::vector<std::filesystem::path> imagePaths;
 
     std::size_t currentIndex_{0};
 
