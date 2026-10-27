@@ -1,165 +1,84 @@
-# Panorama Stitching (C++)
+# Computer Vision Labs
 
-## Goal
+A small C++20 project for computer vision labs and experiments. Reusable mathematical code lives in `library/`; each existing exercise has its own directory and executable under `labs/`.
 
-Build a simple panorama stitching pipeline  
-using projective geometry and homography estimation.
+## Labs and experiments
 
----
+| Directory | Topic | Relation to geometry-labs-2021.pdf | Status |
+|---|---|---|---|
+| `labs/projective-geometry` | Homogeneous coordinates, joins, meets, incidence, homographies | Additional exercise; not PDF lab 1 | Implemented, with unit tests |
+| `labs/panorama-stitching` | ORB matching, custom and OpenCV homography, warping and blending | PDF lab 3 | Partial: panorama pipeline exists; the PDF's full interpolation/quality requirements have not been audited |
+| `labs/camera-projection` | Pinhole projection and camera pose | Additional exercise | Implemented, with unit tests for the math |
+| `labs/camera-calibration` | Chessboard calibration, reprojection checks, parameter sensitivity | Additional calibration experiment | Implemented for image-directory and video input; saved experimental frames/results are in `data/` |
 
-## Key Idea
+The other PDF assignments are not implemented yet: lab 1 stereo rectification, lab 2 SGM, lab 4 random fields for panorama stitching, lab 5 fundamental matrix estimation, lab 6 essential matrix estimation, and lab 7 stereo rectification. The PDF also mentions additional tasks such as SIFT and displacement maps; these are not presented as completed features here.
 
-Two images of the same scene can be aligned  
-using a homography:
+## Reusable library
 
+`library/` builds the `cv_geometry` C++ library. It contains projective geometry operations, 2D transforms, homographies and homography estimation, plus camera projection and rotation math. Experiment-specific image processing and visualization remain in their lab directories.
 
-x' = Hx
+## Requirements
 
+- CMake 3.16 or newer
+- A C++20 compiler
+- Eigen 3
+- OpenCV (the labs request the components they use)
+- GoogleTest to build tests
 
-If correct correspondences are found,  
-a single projective transform maps one image onto another.
+## Configure and build
 
----
+Configure from the repository root:
 
-## Pipeline
-
-The pipeline is implemented as a sequence of processing steps:
-
-- detect keypoints and compute descriptors
-- match descriptors between images
-- filter matches using RANSAC
-- estimate homography
-- warp image using the estimated transform
-- blend overlapping regions
-
-The same pipeline is applied in two ways:
-
-- custom implementation
-- OpenCV implementation (`cv::findHomography`)
-
-The difference lies in how the homography is estimated.
-
----
-
-## Implementation Details
-
-### Custom Pipeline
-
-The homography is estimated from a set of point correspondences between images by solving a system of linear equations. A linear method (Direct Linear Transform, DLT) is used to recover the transformation matrix up to scale.
-
-To improve numerical stability, the input points are normalized prior to estimation. This reduces numerical errors when solving the system.
-
-Since real-world correspondences typically contain outliers, the estimation is performed within a robust framework. A RANSAC-based approach is used, where minimal subsets of correspondences are iteratively sampled to compute candidate models, which are then evaluated against all data.
-
-The quality of each model is determined by the number of inliers, defined using a reprojection error threshold. The best model is selected, and the final homography is re-estimated using all inliers.
-
----
-
-### OpenCV Pipeline
-
-The OpenCV-based approach uses the built-in function `cv::findHomography`, which internally performs both normalization and robust estimation.
-
-Given a set of point correspondences, the function applies a RANSAC-based procedure to estimate the homography while handling outliers.
-
----
-
-## Result
-
-- both methods produce visually similar panoramas
-- alignment is correct in both cases
-- differences are minor and mostly visible in edge regions
-
----
-
-## Key Observations
-
-- homography quality depends primarily on match quality
-- RANSAC has a stronger impact than the specific DLT implementation
-- normalization improves numerical stability but does not fix bad matches
-- limiting the number of matches can improve robustness
-- simple implementations can perform comparably to library solutions
-
----
-
-## Visualization
-
-### Input Images
-
-![img1](images/img1.jpg)
-![img2](images/img2.jpg)
-
----
-
-### Result: Custom Homography
-
-![custom](images/pano_my.jpg)
-
----
-
-### Result: OpenCV Homography
-
-![opencv](images/pano_cv.jpg)
-
----
-
-## Tests
-
-Unit tests cover:
-
-- homography estimation on synthetic data
-- consistency between custom and OpenCV implementations
-
-## Project Structure
-
-```
-include/
-  core/        → Vec3, Mat3
-  geometry/    → points, lines, operations
-  transform/   → affine transforms
-  projective/  → homography
-
-src/           → implementation
-
-tests/         → unit tests (GoogleTest)
-
-viz/           → visualization (OpenCV)
+```sh
+cmake -S . -B build -DBUILD_TESTING=ON
 ```
 
----
+Build one lab or the whole project:
 
-## Build with visualization
-
-```
-mkdir build
-cd build
-cmake -DBUILD_VISUALIZE=ON ..
-cmake --build .
-```
-
----
-
-## Build with tests
-
-```
-mkdir build
-cd build
-cmake -DBUILD_TESTING=ON ..
-cmake --build .
-ctest -V
+```sh
+cmake --build build --target lab_projective_geometry
+cmake --build build --target lab_panorama_stitching
+cmake --build build --target lab_camera_projection
+cmake --build build --target lab_camera_calibration
+cmake --build build
 ```
 
----
+Run the tests with:
 
-## Run
-
-```
-./visualize img1.jpg img2.jpg
-ctest -V
+```sh
+ctest --test-dir build --output-on-failure
 ```
 
----
+## Run labs
 
-## Roadmap
+Projective geometry writes images to `projective-geometry-output/`; camera projection writes `camera_projection.jpg` in the current working directory:
 
-- camera model (3D → 2D projection)
-- epipolar geometry
+```sh
+./build/labs/projective-geometry/lab_projective_geometry
+./build/labs/camera-projection/lab_camera_projection
+```
+
+Panorama stitching takes two image paths and writes `pano_my.jpg` and `pano_cv.jpg` in the current working directory:
+
+```sh
+./build/labs/panorama-stitching/lab_panorama_stitching \
+  labs/panorama-stitching/images/img1.jpg \
+  labs/panorama-stitching/images/img2.jpg
+```
+
+Camera calibration accepts an image directory or video file. It writes detected-corner images to `calibration-output/` in the current working directory:
+
+```sh
+./build/labs/camera-calibration/lab_camera_calibration images labs/camera-calibration/data/selected_1
+./build/labs/camera-calibration/lab_camera_calibration video path/to/video.mp4
+```
+
+The image command uses included sample frames. For video input, replace `path/to/video.mp4` with an existing video file.
+
+## Source layout
+
+```text
+library/                 Reusable C++ math and geometry library
+labs/<topic>/            Independent lab executable, notes, and topic data
+labs/camera-calibration/ Calibration-only helpers, tests, and preserved experiment data
+```
