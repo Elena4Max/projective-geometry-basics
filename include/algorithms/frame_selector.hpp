@@ -17,7 +17,7 @@ class FrameSelector {
     std::size_t frameStep;
     std::size_t maxFrames;
 
-    mutable std::size_t acceptedFrames_ = 0;
+    mutable std::size_t acceptedFrames = 0;
 };
 
 }  // namespace algorithms
